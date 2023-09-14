@@ -75,8 +75,16 @@ int main(void)
       } else {
       }
 
+      USBH_Ep_TypeDef ep;
+      char data[32];
+      int byteCount = 32;
+      int timeout = 1000;
       while ( USBH_DeviceConnected() ) {
+        USBH_ReadB(&ep, data, byteCount, timeout);
+        sprintf(lcdbuffer, "%.4xh", data);
+        SegmentLCD_Write(lcdbuffer);
       }
+
       SegmentLCD_NumberOff();
       SegmentLCD_Write("Device");
       USBTIMER_DelayMs(500);
