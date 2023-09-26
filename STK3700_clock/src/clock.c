@@ -30,9 +30,20 @@
 
 #define RTC_FREQ    32768
 
+#define LED_PORT gpioPortE
+#define BUTTON_PORT gpioPortB
+#define LED0 2
+#define LED1 3
+#define PB0 9
+#define PB1 10
+
+#define   I2C_PORT     gpioPortC     // gpioPortC
+#define   PC4      4     // PC4
+
 /* Initial setup to 12:00 */
 uint32_t hours   = 12;
 uint32_t minutes = 0;
+int led_on = 0;
 
 /* This flag enables/disables vboost on the LCD */
 bool oldBoost = false;
@@ -46,8 +57,6 @@ void GPIO_ODD_IRQHandler(void)
   /* Acknowledge interrupt */
   GPIO_IntClear(1 << 9);
 
-  /* Increase hours */
-  hours = (hours + 1) % 24;
 }
 
 /***************************************************************************//**
@@ -58,9 +67,14 @@ void GPIO_EVEN_IRQHandler(void)
 {
   /* Acknowledge interrupt */
   GPIO_IntClear(1 << 10);
+  GPIO_IntClear(1 << 4);
 
-  /* Increase minutes */
-  minutes = (minutes + 1) % 60;
+  led_on = !led_on;
+	if (led_on) {
+	  GPIO_PinOutSet(LED_PORT, LED1);
+	} else {
+	  GPIO_PinOutClear(LED_PORT, LED1);
+	}
 }
 
 /***************************************************************************//**
@@ -72,12 +86,16 @@ void gpioSetup(void)
   CMU_ClockEnable(cmuClock_GPIO, true);
 
   /* Configure PB9 and PB10 as input */
-  GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0);
-  GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 0);
+  	GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0);
+    GPIO_PinModeSet(gpioPortB, 10, gpioModeInput, 0);
 
-  /* Set falling edge interrupt for both ports */
-  GPIO_IntConfig(gpioPortB, 9, false, true, true);
-  GPIO_IntConfig(gpioPortB, 10, false, true, true);
+    GPIO_PinModeSet(I2C_PORT, PC4, gpioModeInput, 0);
+
+    /* Set falling edge interrupt for both ports */
+  	GPIO_IntConfig(gpioPortB, 9, false, true, true);
+    GPIO_IntConfig(gpioPortB, 10, false, true, true);
+
+    GPIO_IntConfig(I2C_PORT, PC4, false, true, true);
 
   /* Enable interrupt in core for even and odd gpio interrupts */
   NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
@@ -87,12 +105,8 @@ void gpioSetup(void)
   NVIC_EnableIRQ(GPIO_ODD_IRQn);
 }
 
-/***************************************************************************//**
- * @brief  Main function
- ******************************************************************************/
-int main(void)
-{
-  /* Chip errata */
+int gpio_main() {
+	/* Chip errata */
   CHIP_Init();
 
   /* Ensure core frequency has been updated */
@@ -107,7 +121,17 @@ int main(void)
   /* Main function loop */
   while (1) {
 	  SegmentLCD_Number(hours * 100 + minutes);
+	  minutes += 1;
   }
 
   return 0;
 }
+
+/***************************************************************************//**
+ * @brief  Main function
+ ******************************************************************************/
+int main(void)
+{
+	gpio_main();
+}
+
