@@ -21,6 +21,8 @@
 #include "em_usb.h"
 #include "segmentlcd.h"
 
+//#include "hidkbd.h"
+
 /***************************************************************************//**
  *
  * This example shows how the USB host stack can be used to "probe" the device
@@ -40,60 +42,83 @@ static USBH_Device_TypeDef device;
  ******************************************************************************/
 int main(void)
 {
-  char lcdbuffer[8];
-  int connectionResult;
-  USBH_Init_TypeDef is = USBH_INIT_DEFAULT;
+	return main_usb();
+}
 
-  CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
-  CMU_ClockEnable(cmuClock_GPIO, true);
+int main_usb(void)
+{
+	char lcdbuffer[8];
+	int connectionResult;
+	USBH_Init_TypeDef is = USBH_INIT_DEFAULT;
 
-  SegmentLCD_Init(false);
-  SegmentLCD_Write("USBHOST");
-  SegmentLCD_Symbol(LCD_SYMBOL_GECKO, true);
+	CMU_ClockSelectSet(cmuClock_HF, cmuSelect_HFXO);
+	CMU_ClockEnable(cmuClock_GPIO, true);
 
-  USBH_Init(&is);               /* Initialize USB HOST stack */
+	SegmentLCD_Init(false);
+	SegmentLCD_Write("USBHOST");
+	SegmentLCD_Symbol(LCD_SYMBOL_GECKO, true);
 
-  for (;; ) {
-    /* Wait for device connection */
+	USBH_Init(&is);               /* Initialize USB HOST stack */
 
-    /* Wait for maximum 10 seconds. */
-    connectionResult = USBH_WaitForDeviceConnectionB(tmpBuf, 10);
+	for (;; ) {
+	/* Wait for device connection */
 
-    if ( connectionResult == USB_STATUS_OK ) {
-      SegmentLCD_Write("Device");
-      USBTIMER_DelayMs(500);
-      SegmentLCD_Write("Added");
-      USBTIMER_DelayMs(500);
+	/* Wait for maximum 10 seconds. */
+	connectionResult = USBH_WaitForDeviceConnectionB(tmpBuf, 10);
 
-      if (USBH_QueryDeviceB(tmpBuf, sizeof(tmpBuf), USBH_GetPortSpeed())
-          == USB_STATUS_OK) {
-        USBH_InitDeviceData(&device, tmpBuf, NULL, 0, USBH_GetPortSpeed());
+	if ( connectionResult == USB_STATUS_OK ) {
+	  SegmentLCD_Write("Device");
+	  USBTIMER_DelayMs(500);
+	  SegmentLCD_Write("Added");
+	  USBTIMER_DelayMs(500);
 
-        SegmentLCD_UnsignedHex(device.devDesc.idVendor);
-        sprintf(lcdbuffer, "%.4xh", device.devDesc.idProduct);
-        SegmentLCD_Write(lcdbuffer);
-      } else {
-      }
+	  if (USBH_QueryDeviceB(tmpBuf, sizeof(tmpBuf), USBH_GetPortSpeed())
+		  == USB_STATUS_OK) {
+		USBH_InitDeviceData(&device, tmpBuf, NULL, 0, USBH_GetPortSpeed());
 
-      USBH_Ep_TypeDef ep;
-      char data[32];
-      int byteCount = 32;
-      int timeout = 1000;
-      while ( USBH_DeviceConnected() ) {
-        USBH_ReadB(&ep, data, byteCount, timeout);
-        sprintf(lcdbuffer, "%.4xh", data);
-        SegmentLCD_Write(lcdbuffer);
-      }
+		SegmentLCD_UnsignedHex(device.devDesc.idVendor);
+		sprintf(lcdbuffer, "%.4xh", device.devDesc.idProduct);
+		SegmentLCD_Write(lcdbuffer);
+	  } else {
+	  }
 
-      SegmentLCD_NumberOff();
-      SegmentLCD_Write("Device");
-      USBTIMER_DelayMs(500);
-      SegmentLCD_Write("Removed");
-      USBTIMER_DelayMs(500);
-      SegmentLCD_Write("USBHOST");
-    } else if ( connectionResult == USB_STATUS_DEVICE_MALFUNCTION ) {
-    } else if ( connectionResult == USB_STATUS_TIMEOUT ) {
-      SegmentLCD_Write("TIMEOUT");
-    }
-  }
+	  USBH_Ep_TypeDef ep;
+	  char data[128] = "\0";
+	  int byteCount = 64;
+	  int timeout = 0;
+
+	  int count = 0;
+
+	  //USBH_CtlSendSetup(&device.ep0);
+
+	  while ( USBH_DeviceConnected() ) {
+		SegmentLCD_UnsignedHex(count);
+		count++;
+		// int result = USBH_WriteB(&device.ep0, data, byteCount, timeout);
+
+		USBH_Ep_TypeDef *ep = &device.ep0;
+		int retVal = USBH_WriteB(ep, data, byteCount, timeout);
+
+		//sprintf(lcdbuffer, "%x%x%x%x", data[0], data[1], data[2], data[3]);
+		sprintf(lcdbuffer, "%d", ep->xferStatus);
+
+		//if (result == -5) {
+		//	USBH_UnStallEpB(&device.ep0);
+		//	sprintf(lcdbuffer, "%s", "stall!");
+		//}
+
+		SegmentLCD_Write(lcdbuffer);
+	  }
+
+	  SegmentLCD_NumberOff();
+	  SegmentLCD_Write("Device");
+	  USBTIMER_DelayMs(500);
+	  SegmentLCD_Write("Removed");
+	  USBTIMER_DelayMs(500);
+	  SegmentLCD_Write("USBHOST");
+	} else if ( connectionResult == USB_STATUS_DEVICE_MALFUNCTION ) {
+	} else if ( connectionResult == USB_STATUS_TIMEOUT ) {
+	  SegmentLCD_Write("TIMEOUT");
+	}
+	}
 }
