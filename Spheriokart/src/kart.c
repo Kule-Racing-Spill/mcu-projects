@@ -89,8 +89,6 @@ void print_player_debug(player_t player)
 {
     moving_entity_t moving = player.moving;
     vec2 position = moving.entity.position;
-    printf("Player[x:%f, y:%f, dir:%f, speed:%f]", position.x,
-           position.y, moving.direction, moving.tangential_speed);
 }
 
 int8_t prevValueX;
