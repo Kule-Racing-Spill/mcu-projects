@@ -1,3 +1,4 @@
 .metadata
 outgoing
 **/* - Debug
+.DS_Store
