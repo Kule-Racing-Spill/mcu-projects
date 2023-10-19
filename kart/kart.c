@@ -40,7 +40,7 @@ float clamp(float value, float min, float max)
 
 int get_input(char c)
 {
-    return 1; // TODO!
+    return 0; // TODO!
 }
 
 // Sprite
@@ -55,6 +55,7 @@ struct entity_t
 {
     vec2 position;
     int sprite_index;
+    float distance_to_camera;
 } typedef entity_t;
 
 struct moving_entity_t
@@ -83,7 +84,7 @@ void print_player_debug(player_t player)
 {
     moving_entity_t moving = player.moving;
     vec2 position = moving.entity.position;
-    printf("Player[x:%f, y:%f, dir:%f, speed:%f]", position.x,
+    printf("Player[x:%f, y:%f, dir:%f, speed:%f]\n", position.x,
            position.y, moving.direction, moving.tangential_speed);
 }
 
@@ -158,6 +159,7 @@ struct canvas_t
 void draw_rect(int x0, int y0, int x1, int y1, char *color)
 {
     // TODO!
+    printf("Draw Rect[x:%d, y:%d]\n", x0, y0);
 }
 
 void draw_background(canvas_t canvas)
@@ -170,6 +172,30 @@ void draw_background(canvas_t canvas)
 void draw_image(int sprite_index, vec2 position, float scale)
 {
     // TODO!
+    printf("Draw Rect[i:%d, x:%f, y:%f: s:%f]\n", sprite_index, position.x, position.y, scale);
+}
+
+// Camera
+
+struct camera_t
+{
+    vec2 position;
+    int distance_to_target;
+} typedef camera_t;
+
+// Sorting
+
+int compare_distance_to_camera(const void *pa, const void *pb)
+{
+    entity_t a = *((entity_t *)pa);
+    entity_t b = *((entity_t *)pb);
+
+    if (a.distance_to_camera == b.distance_to_camera)
+        return 0;
+    else if (a.distance_to_camera < b.distance_to_camera)
+        return 1;
+    else
+        return -1;
 }
 
 // Program
@@ -179,9 +205,16 @@ void draw_image(int sprite_index, vec2 position, float scale)
 int main(void)
 {
     canvas_t canvas;
+    canvas.size.x = 800;
+    canvas.size.y = 480;
     player_t player;
     entity_t entities[NUM_ENTITIES];
-    int camera_distance = 256;
+    camera_t camera;
+    camera.distance_to_target = 256;
+
+    vec2 origin = {
+        canvas.size.x / 2 - 16,
+        canvas.size.y};
 
     while (1)
     {
@@ -195,19 +228,29 @@ int main(void)
         draw_background(canvas);
 
         vec2 player_pos = player.moving.entity.position;
-        vec2 camera_pos = {
+        camera.position.x =
             player_pos.x -
-                camera_distance * cos(player.moving.direction),
+            camera.distance_to_target * cos(player.moving.direction);
+        camera.position.y =
             player_pos.y -
-                camera_distance * sin(player.moving.direction)};
+            camera.distance_to_target * sin(player.moving.direction);
 
-        // TODO: Sort entities by distance to camera.
+        for (int i = 0; i < NUM_ENTITIES; i++)
+        {
+            entity_t entity = entities[i];
+            entity.distance_to_camera = distance_between(
+                camera.position, entity.position);
+        }
+
+        qsort(entities, NUM_ENTITIES,
+              sizeof(entity_t), compare_distance_to_camera);
 
         for (int i = 0; i < NUM_ENTITIES; i++)
         {
             entity_t entity = entities[i];
             float angle =
-                atan2(entity.position.y - camera_pos.y, entity.position.x - camera_pos.x) -
+                atan2(entity.position.y - camera.position.y,
+                      entity.position.x - camera.position.x) -
                 player.moving.direction;
 
             while (angle > M_PI)
@@ -218,17 +261,14 @@ int main(void)
                 continue;
             ;
 
-            float distance = distance_between(camera_pos, entity.position);
-            float scale = clamp(100 / powf(distance, 0.8), 0.01, 2.5);
+            float scale = clamp(100 / powf(entity.distance_to_camera, 0.8), 0.01, 2.5);
             scale = round(scale * 100) / 100;
 
-            vec2 origin = {
-                canvas.size.x / 2 - 16,
-                canvas.size.y};
-
             vec2 offset = {
-                32 * powf(distance, 0.4) * cos(angle - M_PI / 2),
-                16 * powf(distance, 0.3) * sin(angle - M_PI / 2)};
+                32 * powf(entity.distance_to_camera, 0.4) *
+                    cos(angle - M_PI / 2),
+                16 * powf(entity.distance_to_camera, 0.3) *
+                    sin(angle - M_PI / 2)};
 
             draw_image(
                 entity.sprite_index,
