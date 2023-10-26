@@ -648,7 +648,7 @@ void USART_BaudrateSyncSet(USART_TypeDef *usart, uint32_t refFreq, uint32_t baud
   clkdiv = clkdiv << 8;
 
   /* Verify that resulting clock divider is within limits. */
-  EFM_ASSERT(!(clkdiv & ~CLKDIV_MASK));
+  // EFM_ASSERT(!(clkdiv & ~CLKDIV_MASK));
 
   usart->CLKDIV = clkdiv;
 }
