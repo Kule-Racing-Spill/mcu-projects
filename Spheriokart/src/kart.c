@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "trackball.h"
 #include "segmentlcd.h"
+#include "spi.h"
 
 // Maths
 
@@ -150,9 +151,10 @@ void draw_background(canvas_t canvas)
     draw_rect(0, sky_height, canvas.size.x, canvas.size.y, "green");
 }
 
-void draw_image(int sprite_index, vec2 position, float scale)
+void draw_sprite(int sprite_index, vec2 position, float scale)
 {
-    // TODO!
+	sprite_draw_info sprite_info = {sprite_index, position.x, position.y, scale};
+	spi_draw_sprite(sprite_info);
 }
 
 // Program
@@ -208,7 +210,7 @@ int kart(TrackballValues v)
 			32 * powf(distance, 0.4) * cos(angle - M_PI / 2),
 			16 * powf(distance, 0.3) * sin(angle - M_PI / 2)};
 
-		draw_image(
+		draw_sprite(
 			entity.sprite_index,
 			vec2_add(origin, offset),
 			scale);
