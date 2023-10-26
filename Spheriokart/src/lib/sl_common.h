@@ -373,11 +373,13 @@ __STATIC_INLINE uint8_t SL_RBIT8(uint8_t value)
  *   Dividend.
  ******************************************************************************/
 
+/*
 __STATIC_INLINE uint32_t SL_Log2ToDiv(uint32_t log2)
 {
   EFM_ASSERT(log2 < 32U);
   return 1UL << log2;
 }
+*/
 
 /** @} (end addtogroup common) */
 

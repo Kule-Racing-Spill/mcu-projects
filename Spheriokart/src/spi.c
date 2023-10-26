@@ -1,5 +1,5 @@
 #include "lib/spidrv.h"
-#include "lib/segmentlcd.h"
+//#include "lib/segmentlcd.h"
 #include "spi.h"
 
 void TransferComplete( SPIDRV_Handle_t handle,
@@ -9,7 +9,7 @@ void TransferComplete( SPIDRV_Handle_t handle,
 	if ( transferStatus == ECODE_EMDRV_SPIDRV_OK )
 	{
 	// Success !
-		SegmentLCD_Number(2);
+		//SegmentLCD_Number(2);
 	}
 }
 
@@ -31,7 +31,7 @@ uint8_t *sprites[4] = {
 };
 
 void spi_send_sprite(uint8_t sprite_id) {
-	SegmentLCD_Number(SPI_CMD_SEND_SPRITE);
+	//SegmentLCD_Number(SPI_CMD_SEND_SPRITE);
 	int buffer_size = 2 + SPRITE_BYTES;
 	uint8_t buffer[buffer_size];
 	buffer[0] = SPI_CMD_SEND_SPRITE;
@@ -41,7 +41,7 @@ void spi_send_sprite(uint8_t sprite_id) {
 }
 
 void spi_draw_sprite(sprite_draw_info sprite_info) {
-	SegmentLCD_Number(SPI_CMD_DRAW_SPRITE);
+	//SegmentLCD_Number(SPI_CMD_DRAW_SPRITE);
 	int buffer_size = 7;
 	uint8_t buffer[buffer_size];
 	buffer[0] = SPI_CMD_DRAW_SPRITE;
@@ -50,11 +50,20 @@ void spi_draw_sprite(sprite_draw_info sprite_info) {
 }
 
 void spi_send_test(int i) {
-	SegmentLCD_Number(i);
+	//SegmentLCD_Number(i);
 	int buffer_size = 1;
 	uint8_t buffer[1];
 	buffer[0] = i;
 	SPIDRV_MTransmitB( handle, buffer, buffer_size );
+}
+
+void spi_init(void) {
+	//uint8_t buffer[10];
+	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
+	initData.bitRate = 1;
+
+	// Initialize a SPI driver instance
+	SPIDRV_Init( handle, &initData );
 }
 
 void busy_sleep(int i) {
@@ -66,15 +75,8 @@ void busy_sleep(int i) {
 
 int spi_loop( void )
 {
-	SegmentLCD_Init(false);
-	SegmentLCD_Number(-1);
-
-	//uint8_t buffer[10];
-	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
-	initData.bitRate = 1;
-
-	// Initialize a SPI driver instance
-	SPIDRV_Init( handle, &initData );
+	//SegmentLCD_Init(false);
+	//SegmentLCD_Number(-1);
 
 	// Transmit data using a blocking transmit function
 	//SPIDRV_MTransmitB( handle, buffer, 10 );
