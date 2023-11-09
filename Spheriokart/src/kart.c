@@ -153,15 +153,24 @@ void draw_background(canvas_t canvas)
 
 void draw_sprite(int sprite_index, vec2 position, float scale)
 {
-	sprite_draw_info sprite_info = {sprite_index, position.x, position.y, scale};
+	sprite_draw_info sprite_info = (sprite_draw_info) {
+		.scale = scale,
+		.sprite_id = sprite_index,
+		.x = position.x,
+		.y = position.y,
+	};
+
 	spi_draw_sprite(sprite_info);
 }
 
 // Program
 
-#define NUM_ENTITIES 50
+#define NUM_ENTITIES 1
 
-canvas_t canvas;
+canvas_t canvas = (canvas_t) {
+	.size = {800, 480}
+};
+
 player_t player;
 entity_t entities[NUM_ENTITIES];
 int camera_distance = 256;
@@ -185,7 +194,8 @@ int kart(TrackballValues v)
 
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		entity_t entity = entities[i];
+		// entity_t entity = entities[i];
+		entity_t entity = player.moving.entity;
 		float angle =
 			atan2(entity.position.y - camera_pos.y, entity.position.x - camera_pos.x) -
 			player.moving.direction;
