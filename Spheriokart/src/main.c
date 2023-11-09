@@ -11,10 +11,13 @@ int main(){
 
 	spi_init();
 
+	spi_send_sprites();
+
 	for(;;){ // Keep trying to connect
 
 		InitUSBHStack(); /* Initialize usb stack */
 		InitTrackball(); /* Initialize the trackball */
+
 		while(USBH_DeviceConnected()){ /* Program loop */
 			GetTrackballValues(&v);
 			kart(v);
