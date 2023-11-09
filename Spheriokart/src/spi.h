@@ -19,4 +19,5 @@ void spi_send_sprite(uint8_t sprite_id);
 void spi_draw_sprite(sprite_draw_info sprite_info);
 void spi_send_test(int i);
 void busy_sleep(int i);
-int spi_loop( void );
+void spi_loop( void );
+void spi_send_sprites( void );

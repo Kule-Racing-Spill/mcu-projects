@@ -17,10 +17,13 @@ int main(){
 	Button_Init(BUTTON1|BUTTON2);
 	uint32_t b;
 
+	spi_send_sprites();
+
 	for(;;){ // Keep trying to connect
 
 		InitUSBHStack(); /* Initialize usb stack */
 		InitTrackball(); /* Initialize the trackball */
+
 		while(USBH_DeviceConnected()){ /* Program loop */
 			GetTrackballValues(&v);
 			b = Button_ReadReleased();
