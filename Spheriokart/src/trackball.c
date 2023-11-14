@@ -1,5 +1,5 @@
 #include "em_usb.h"
-#include "segmentlcd.h"
+// #include "segmentlcd.h"
 #include "trackball.h"
 
 /* Timer indices. */
@@ -40,12 +40,12 @@ void GetTrackballValues(TrackballValues* coords) {
 }
 
 void InitTrackball(void){
-	SegmentLCD_Init(false);
+	// SegmentLCD_Init(false);
 	int connectionResult = USBH_WaitForDeviceConnectionB(tmpBuf, 10);
 	if (connectionResult == USB_STATUS_OK) {
-		SegmentLCD_Write("Device");
+		// SegmentLCD_Write("Device");
 		USBTIMER_DelayMs(500);
-		SegmentLCD_Write("Added");
+		// SegmentLCD_Write("Added");
 		USBTIMER_DelayMs(500);
 		if (USBH_QueryDeviceB(tmpBuf, sizeof(tmpBuf), USBH_GetPortSpeed()) == USB_STATUS_OK) {
 			USBH_InitDeviceData( &device, tmpBuf, &ep, 1, USBH_GetPortSpeed() ); 	/* Initialize device data structure, assume device has 1 endpoint. */
@@ -61,7 +61,7 @@ void InitTrackball(void){
 		USBTIMER_Start( KBD_SUSPEND_TIMER, 5000, SuspendTimeout );
 	}else if (connectionResult == USB_STATUS_TIMEOUT) {
 		/* Connection timed out */
-		SegmentLCD_Write("TIMEOUT");
+		// SegmentLCD_Write("TIMEOUT");
 	}
 }
 

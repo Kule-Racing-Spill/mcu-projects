@@ -1,6 +1,6 @@
 #include "em_usb.h"
 #include "trackball.h"
-#include "segmentlcd.h" // For writing to the devboard screen. Can be removed when we are running on our own board.
+// #include "segmentlcd.h" // For writing to the devboard screen. Can be removed when we are running on our own board.
 #include "kart.h"
 #include "printing.h"
 #include "spi.h"
@@ -37,11 +37,12 @@ int main(){
 		}
 
 		/* USB connection lost */
-		SegmentLCD_NumberOff();
+		/* SegmentLCD_NumberOff();
 		SegmentLCD_Write("Device");
 		USBTIMER_DelayMs(500);
 		SegmentLCD_Write("Removed");
 		USBTIMER_DelayMs(500);
 		SegmentLCD_Write("USBHOST");
+		*/
 	}
 }
