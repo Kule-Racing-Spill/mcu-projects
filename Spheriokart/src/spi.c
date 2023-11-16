@@ -63,20 +63,21 @@ uint8_t *sprites[N_SPRITES] = {
 
 void spi_send_sprite(uint8_t sprite_id) {
 	//SegmentLCD_Number(SPI_CMD_SEND_SPRITE);
-	int buffer_size = 2 + SPRITE_BYTES;
-	uint8_t buffer[2 + SPRITE_BYTES];
+	int buffer_size = 3 + SPRITE_BYTES;
+	uint8_t buffer[3 + SPRITE_BYTES];
 	buffer[0] = SPI_CMD_SEND_SPRITE;
 	buffer[1] = sprite_id;
 	for (int i = 0; i < SPRITE_BYTES; i++) {
 		buffer[2 + i] = sprites[sprite_id][i];
 	}
+	buffer[buffer_size - 1] = 0;
 	SPIDRV_MTransmitB( handle, buffer, buffer_size );
 }
 
 void spi_draw_sprite(sprite_draw_info sprite_info) {
 	//SegmentLCD_Number(SPI_CMD_DRAW_SPRITE);
-	int buffer_size = 7;
-	uint8_t buffer[7];
+	int buffer_size = 8;
+	uint8_t buffer[8];
 	buffer[0] = SPI_CMD_DRAW_SPRITE;
 	buffer[1] = sprite_info.sprite_id;
 	buffer[2] = sprite_info.x >> 8;
@@ -84,14 +85,16 @@ void spi_draw_sprite(sprite_draw_info sprite_info) {
 	buffer[4] = sprite_info.y >> 8;
 	buffer[5] = sprite_info.y & 0x00FF;
 	buffer[6] = sprite_info.scale;
+	buffer[7] = 0;
 	SPIDRV_MTransmitB( handle, buffer, buffer_size );
 }
 
 void spi_send_test(int i) {
 	//SegmentLCD_Number(i);
-	int buffer_size = 1;
-	uint8_t buffer[1];
+	int buffer_size = 2;
+	uint8_t buffer[2];
 	buffer[0] = i;
+	buffer[1] = 0;
 	SPIDRV_MTransmitB( handle, buffer, buffer_size );
 }
 
