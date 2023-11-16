@@ -4,7 +4,7 @@
 #include <string.h>
 #include <assert.h>
 #include "trackball.h"
-#include "segmentlcd.h"
+// #include "segmentlcd.h"
 #include "spi.h"
 
 // Maths
@@ -242,6 +242,6 @@ static void WritePosToScreen(player_t* player){
 	}
 
 	// Display direction and values
-	SegmentLCD_Number(round(direction));
-	SegmentLCD_LowerNumber(round(position));
+	// SegmentLCD_Number(round(direction));
+	// SegmentLCD_LowerNumber(round(position));
 }
