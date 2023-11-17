@@ -145,18 +145,17 @@ int x = 0;
 int y = 0;
 int dx = 5;
 int dy = 5;
+int scale = 0;
 
 void draw() {
 
 	sprite_draw_info sprite_info_a = {
 		0,
-		0,
-		0,
-		0b11111111,
+		x,
+		y,
+		scale,
 	};
 
-	sprite_info_a.x = x;
-	sprite_info_a.y = y;
 	spi_draw_sprite(sprite_info_a);
 
 	x += dx;
@@ -166,6 +165,9 @@ void draw() {
 	}
 	if (y <= 0 || 480 <= y) {
 		dy *= -1;
+	}
+	if (scale > 255) {
+		scale = 0;
 	}
 }
 
