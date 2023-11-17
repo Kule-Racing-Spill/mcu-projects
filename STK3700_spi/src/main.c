@@ -76,7 +76,6 @@ void spi_send_sprite(uint8_t sprite_id) {
 }
 
 void spi_draw_sprite(sprite_draw_info sprite_info) {
-	//SegmentLCD_Number(SPI_CMD_DRAW_SPRITE);
 	int buffer_size = 8;
 	uint8_t buffer[8];
 	buffer[0] = SPI_CMD_DRAW_SPRITE;
@@ -100,9 +99,9 @@ void spi_send_test(int i) {
 }
 
 void spi_init(void) {
-	//uint8_t buffer[10];
+
 	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
-	initData.bitRate = 6000000;
+	initData.bitRate = 1000000;
 
 	// Initialize a SPI driver instance
 	SPIDRV_Init( handle, &initData );
@@ -131,10 +130,6 @@ void spi_send_sprites( void ) {
 #define I2C_PORT gpioPortC
 #define PC4 4
 
-#define PORT_E 4
-#define PE15 15
-#define IRQ_NUM 4
-
 int led_on = 0;
 void toggle_led() {
 	led_on = !led_on;
@@ -149,23 +144,19 @@ int x = 0;
 int y = 0;
 int dx = 5;
 int dy = 5;
+int scale = 0;
 
 void draw() {
 
 	sprite_draw_info sprite_info_a = {
 		0,
-		0,
-		0,
-		0,
+		x,
+		y,
+		scale,
 	};
 
-	for (int j = 0; j < 1; j++) {
-		for (int i = 0; i < 1; i++) {
-			sprite_info_a.x = x + i * 32;
-			sprite_info_a.y = y + j * 32;
-			spi_draw_sprite(sprite_info_a);
-		}
-	}
+	spi_draw_sprite(sprite_info_a);
+
 	x += dx;
 	y += dy;
 	if (x <= 0 || 800 <= x) {
@@ -175,7 +166,10 @@ void draw() {
 		dy *= -1;
 	}
 
-	//toggle_led();
+	//if (x % 100 == 0) {
+		SegmentLCD_Number(x);
+	//}
+		scale += 1;
 }
 
 void GPIO_ODD_IRQHandler(void)
@@ -188,14 +182,14 @@ void GPIO_EVEN_IRQHandler(void)
 	/* Acknowledge interrupt */
 
 	draw();
-	GPIO_IntClear(1 << IRQ_NUM);
+	GPIO_IntClear(1 << PC4);
 }
 
 void gpio_setup(void) {
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
-    GPIO_PinModeSet(PORT_E, PE15, gpioModeInput, 0);
-    GPIO_ExtIntConfig(PORT_E, PE15, IRQ_NUM, false, true, true);
+    GPIO_PinModeSet(I2C_PORT, PC4, gpioModeInput, 0);
+    GPIO_ExtIntConfig(I2C_PORT, PC4, PC4, false, true, true);
 
 	NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
 	NVIC_EnableIRQ(GPIO_EVEN_IRQn);
@@ -219,9 +213,9 @@ int main( void )
 
 	spi_init();
 
-	GPIO_PinOutSet(LED_PORT, LED1);
-
-	while (1) {}
+	while (1) {
+		//draw();
+	}
 
 	return 0;
 }
