@@ -82,7 +82,7 @@ int main()
 
 		if (b & BUTTON1)
 		{
-			input_vector.x = 1;
+			input_vector.x = 5;
 			GPIO_PinOutSet(LED_PORT, LED0);
 #if DEBUG
 			printf("Button1 pressed!\n");

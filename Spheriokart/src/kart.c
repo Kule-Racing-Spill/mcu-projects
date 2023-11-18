@@ -3,12 +3,14 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+
+#include "fast_math.h"
 #include "trackball.h"
 #include "spi.h"
 
 // Maths
 
-#define PI 3.141592
+#define PI 3.14159265358979323846
 float TAU = 2 * PI;
 float PI_HALF = PI / 2;
 
@@ -45,6 +47,7 @@ float clamp(float value, float min, float max)
 #define SPRITE_MARIO_RIGHT 0
 #define SPRITE_MARIO_UP 1
 #define SPRITE_MARIO_LEFT 2
+#define SPRITE_HALF 40 // this considers scaling
 
 // Entities
 
@@ -108,8 +111,8 @@ void player_step(player_t *player, vec2int input_vector)
 	validate_angle(&(moving->direction));
 
 	// Movement
-	entity->position.x += cos(moving->direction) * moving->tangential_speed;
-	entity->position.y += sin(moving->direction) * moving->tangential_speed;
+	entity->position.x += fast_sin(PI_HALF - moving->direction) * moving->tangential_speed;
+	entity->position.y += fast_sin(moving->direction) * moving->tangential_speed;
 
 	// Clamp
 	moving->tangential_speed *= PLAYER_TANGENTIAL_DAMPING;
@@ -132,8 +135,9 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 50
-#define CAMERA_DISTANCE 256
+#define NUM_ENTITIES 100
+#define CAMERA_PLAYER_DISTANCE 256
+#define CAMERA_RENDER_DISTANCE 4096
 
 canvas_t canvas = (canvas_t){
 	.size = {800, 480}};
@@ -183,46 +187,55 @@ void kart_step(vec2int input_vector, int frames)
 	// TODO: Sort entities by distance to camera.
 
 	vec2 camera_pos = {
-		player.moving.entity->position.x - CAMERA_DISTANCE * cos(player.moving.direction),
-		player.moving.entity->position.y - CAMERA_DISTANCE * sin(player.moving.direction)};
+		player.moving.entity->position.x - CAMERA_PLAYER_DISTANCE * fast_sin(PI_HALF - player.moving.direction),
+		player.moving.entity->position.y - CAMERA_PLAYER_DISTANCE * fast_sin(player.moving.direction)};
 
 	vec2 origin = {
-		canvas.size.x / 2 - 8,
+		canvas.size.x / 2 - SPRITE_HALF,
 		canvas.size.y};
 
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
 		entity_t *entity = &entities[i];
-		entity->visible = 1;
+		entity->visible = 0;
 
-		float angle =
-			atan2(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
-		validate_angle(&angle);
-
-		if (!(-PI_HALF < angle && angle < PI_HALF)) {
-			entity->visible = 0;
+		float distance = distance_between(camera_pos, entity->position);
+		entity->distance_to_camera = distance;
+		if (distance > CAMERA_RENDER_DISTANCE) {
 			continue;
 		}
 
-		float distance = distance_between(camera_pos, entity->position);
-		int scale = round(clamp(8000 / powf(distance, 0.8), 1, 256));
+		float angle =
+				fast_atan2(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
+		validate_angle(&angle);
+
+		if (angle < -PI_HALF || PI_HALF < angle) {
+			continue;
+		}
 
 		vec2 offset = {
-			32 * powf(distance, 0.4) * cos(angle - PI_HALF),
-			16 * powf(distance, 0.35) * sin(angle - PI_HALF)};
+			32 * fast_pow(distance, 0.4) * sin(angle),
+			16 * fast_pow(distance, 0.35) * sin(angle - PI_HALF)};
 
 		int x = origin.x + offset.x;
 		int y = origin.y + offset.y;
 
-		entity->draw_info.scale = scale;
 		entity->draw_info.x = x;
 		entity->draw_info.y = y;
-		entity->distance_to_camera = distance;
 
-		if (x < 0 || canvas.size.x < x || y < 0 || canvas.size.y < y) {
-			entity->visible = 0;
+		int border = 80; // TODO: why does it crash without this?
+		if (x < border || canvas.size.x - border < x || y < border || canvas.size.y - border < y) {
 			continue;
 		}
+
+		int scale = round(clamp(8000 / fast_pow(distance, 0.8), 1, 256));
+		entity->draw_info.scale = scale;
+
+		if (scale < 16) {
+			continue;
+		}
+
+		entity->visible = 1;
 	}
 }
 
@@ -230,8 +243,8 @@ void kart_init()
 {
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		entities[i].position.x = i * 64;
-		entities[i].position.y = i * 64;
+		entities[i].position.x = i * 128;
+		entities[i].position.y = i * 128;
 
 		entities[i].draw_info.sprite_id = 0;
 		entities[i].draw_info.x = 0;
@@ -242,6 +255,7 @@ void kart_init()
 	}
 
 	player.moving.entity = &entities[0];
+	player.moving.direction = 0;
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);
