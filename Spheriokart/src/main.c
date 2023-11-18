@@ -28,8 +28,11 @@
 
 vec2int input_vector;
 
+int frames = 0;
+
 void fpga_call()
 {
+	frames += 1;
 	kart_draw();
 	GPIO_IntClear(1 << FPGA_INPUT_PIN);
 }
@@ -51,6 +54,7 @@ void gpio_init(void)
 	NVIC_EnableIRQ(GPIO_ODD_IRQn);
 }
 
+
 int main()
 {
 #if DEBUG
@@ -67,16 +71,12 @@ int main()
 
 	while (1)
 	{
-		/* KART */
-
-		kart_step(input_vector);
-
-		input_vector.x = 1;
+		input_vector.x = 0;
 		input_vector.y = 0;
 
 		/* BUTTONS */
 
-		b = Button_ReadReleased();
+		b = b | Button_ReadReleased();
 		GPIO_PinOutClear(LED_PORT, LED0);
 		GPIO_PinOutClear(LED_PORT, LED1);
 
@@ -112,5 +112,12 @@ int main()
 		}
 
 #endif
+		/* KART */
+
+		if (frames) {
+			kart_step(input_vector, frames);
+			frames = 0;
+			b = 0;
+		}
 	}
 }

@@ -53,6 +53,7 @@ struct entity_t
 	vec2 position;
 	sprite_draw_info draw_info;
 	uint8_t visible;
+	float distance_to_camera;
 } typedef entity_t;
 
 struct moving_entity_t
@@ -131,7 +132,7 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 20
+#define NUM_ENTITIES 50
 #define CAMERA_DISTANCE 256
 
 canvas_t canvas = (canvas_t){
@@ -139,22 +140,41 @@ canvas_t canvas = (canvas_t){
 
 player_t player;
 entity_t entities[NUM_ENTITIES];
+entity_t *entity_pointers[NUM_ENTITIES];
+
+
+int compare_distance_to_camera(const void *pa, const void *pb)
+{
+    entity_t a = **((entity_t **)pa);
+    entity_t b = **((entity_t **)pb);
+
+    if (a.distance_to_camera == b.distance_to_camera)
+        return 0;
+    else if (a.distance_to_camera < b.distance_to_camera)
+        return 1;
+    else
+        return -1;
+}
 
 void kart_draw()
 {
+	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t*), compare_distance_to_camera);
+
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		if (!entities[i].visible) {
+		if (!entity_pointers[i]->visible) {
 			continue;
 		}
 
-		spi_draw_sprite(entities[i].draw_info);
+		spi_draw_sprite(entity_pointers[i]->draw_info);
 	}
 }
 
-void kart_step(vec2int input_vector)
+void kart_step(vec2int input_vector, int frames)
 {
-	player_step(&player, input_vector);
+	for (int i = 0; i < frames; i++) {
+		player_step(&player, input_vector);
+	}
 
 #if DEBUG
 	WritePosToScreen(&player);
@@ -197,6 +217,7 @@ void kart_step(vec2int input_vector)
 		entity->draw_info.scale = scale;
 		entity->draw_info.x = x;
 		entity->draw_info.y = y;
+		entity->distance_to_camera = distance;
 
 		if (x < 0 || canvas.size.x < x || y < 0 || canvas.size.y < y) {
 			entity->visible = 0;
@@ -216,12 +237,14 @@ void kart_init()
 		entities[i].draw_info.x = 0;
 		entities[i].draw_info.y = 0;
 		entities[i].draw_info.scale = 100;
+
+		entity_pointers[i] = &entities[i];
 	}
 
 	player.moving.entity = &entities[0];
 
 	vec2int v = {0, 0};
-	kart_step(v);
+	kart_step(v, 1);
 }
 
 #if DEBUG
