@@ -96,9 +96,6 @@ void validate_angle(float *angle)
 
 void player_step(player_t *player, vec2int input_vector)
 {
-	if (input_vector.x == 0 && input_vector.y == 0)
-		return;
-
 	moving_entity_t *moving = &(player->moving);
 	entity_t *entity = moving->entity;
 
@@ -135,7 +132,7 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 100
+#define NUM_ENTITIES 200
 #define CAMERA_PLAYER_DISTANCE 256
 #define CAMERA_RENDER_DISTANCE 4096
 
@@ -231,7 +228,7 @@ void kart_step(vec2int input_vector, int frames)
 		int scale = round(clamp(8000 / fast_pow(distance, 0.8), 1, 256));
 		entity->draw_info.scale = scale;
 
-		if (scale < 16) {
+		if (scale < 8) {
 			continue;
 		}
 
@@ -243,10 +240,13 @@ void kart_init()
 {
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		entities[i].position.x = i * 128;
-		entities[i].position.y = i * 128;
+		entities[i].position.x = i * (128+64);
+		entities[i].position.y = 0;
+		if (i % 2 == 0) {
+			entities[i].position.y += 512;
+		}
 
-		entities[i].draw_info.sprite_id = 0;
+		entities[i].draw_info.sprite_id = 1;
 		entities[i].draw_info.x = 0;
 		entities[i].draw_info.y = 0;
 		entities[i].draw_info.scale = 100;
@@ -256,6 +256,7 @@ void kart_init()
 
 	player.moving.entity = &entities[0];
 	player.moving.direction = 0;
+	player.moving.entity->draw_info.sprite_id = 0;
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);
