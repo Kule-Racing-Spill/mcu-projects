@@ -4,8 +4,6 @@
 #define SPRITE_BYTES (32*16)
 #define SPI_CMD_SEND_SPRITE 0
 #define SPI_CMD_DRAW_SPRITE 1
-#define SPI_CMD_TEST_2 2
-#define SPI_CMD_TEST_3 3
 
 struct sprite_draw_info {
 	uint8_t sprite_id;

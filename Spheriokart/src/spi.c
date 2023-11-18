@@ -1,17 +1,7 @@
 #include "lib/spidrv.h"
-//#include "lib/segmentlcd.h"
 #include "spi.h"
 
-void TransferComplete( SPIDRV_Handle_t handle,
-                       Ecode_t transferStatus,
-                       int itemsTransferred )
-{
-	if ( transferStatus == ECODE_EMDRV_SPIDRV_OK )
-	{
-	// Success !
-		//SegmentLCD_Number(2);
-	}
-}
+#define DEBUG 0
 
 SPIDRV_HandleData_t handleData;
 SPIDRV_Handle_t handle = &handleData;
@@ -58,11 +48,10 @@ uint8_t sprite_sphere[SPRITE_BYTES] = {
 
 #define N_SPRITES 1
 uint8_t *sprites[N_SPRITES] = {
-		&sprite_sphere
+		//&sprite_sphere
 };
 
 void spi_send_sprite(uint8_t sprite_id) {
-	//SegmentLCD_Number(SPI_CMD_SEND_SPRITE);
 	int buffer_size = 3 + SPRITE_BYTES;
 	uint8_t buffer[3 + SPRITE_BYTES];
 	buffer[0] = SPI_CMD_SEND_SPRITE;
@@ -75,7 +64,6 @@ void spi_send_sprite(uint8_t sprite_id) {
 }
 
 void spi_draw_sprite(sprite_draw_info sprite_info) {
-	//SegmentLCD_Number(SPI_CMD_DRAW_SPRITE);
 	int buffer_size = 8;
 	uint8_t buffer[8];
 	buffer[0] = SPI_CMD_DRAW_SPRITE;
@@ -90,7 +78,6 @@ void spi_draw_sprite(sprite_draw_info sprite_info) {
 }
 
 void spi_send_test(int i) {
-	//SegmentLCD_Number(i);
 	int buffer_size = 2;
 	uint8_t buffer[2];
 	buffer[0] = i;
@@ -99,11 +86,8 @@ void spi_send_test(int i) {
 }
 
 void spi_init(void) {
-	//uint8_t buffer[10];
 	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
-	initData.bitRate = 1;
-
-	// Initialize a SPI driver instance
+	initData.bitRate = 6000000;
 	SPIDRV_Init( handle, &initData );
 }
 
@@ -118,35 +102,5 @@ void spi_send_sprites( void ) {
 	int N = 1;
 	for (int i = 0; i < N; i++) {
 		spi_send_sprite(i);
-	}
-}
-
-void spi_loop( void )
-{
-	//SegmentLCD_Init(false);
-	//SegmentLCD_Number(-1);
-
-	// Transmit data using a blocking transmit function
-	//SPIDRV_MTransmitB( handle, buffer, 10 );
-	//SegmentLCD_Number(1);
-
-	// Transmit data using a callback to catch transfer completion.
-	//SPIDRV_MTransmit( handle, buffer, 10, TransferComplete );
-
-	// for (int i = 0; i < NUM_SPRITE_IDS; i++) {
-	// 	spi_send_sprite(i);
-	// }
-
-	sprite_draw_info sprite_info;
-
-	while (1) {
-		spi_send_sprite(0);
-		busy_sleep(1000);
-		spi_draw_sprite(sprite_info);
-		busy_sleep(1000);
-		for (int i = 2; i < 10; i++) {
-			spi_send_test(i);
-			busy_sleep(1000);
-		}
 	}
 }

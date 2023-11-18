@@ -3,14 +3,15 @@
 #ifndef TRACKBALL_H
 #define TRACKBALL_H
 
-typedef struct {
+typedef struct
+{
 	int8_t x;
 	int8_t y;
-} TrackballValues;
+} vec2int;
 
 void runTrackballExample(void);
 void InitTrackball(void);
-void GetTrackballValues(TrackballValues* coords);
+void GetTrackballValues(vec2int *coords);
 void InitUSBHStack(void);
 
 #endif // TRACKBALL_H

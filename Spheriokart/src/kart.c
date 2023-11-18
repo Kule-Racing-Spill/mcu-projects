@@ -4,46 +4,40 @@
 #include <string.h>
 #include <assert.h>
 #include "trackball.h"
-// #include "segmentlcd.h"
 #include "spi.h"
 
 // Maths
 
-#define M_PI 3.14159265358979323846
+#define PI 3.141592
+float TAU = 2 * PI;
+float PI_HALF = PI / 2;
 
 struct vec2
 {
-    float x;
-    float y;
+	float x;
+	float y;
 } typedef vec2;
 
 vec2 vec2_add(vec2 a, vec2 b)
 {
-    vec2 sum = {a.x + b.x, a.y + b.y};
-    return sum;
+	vec2 sum = {a.x + b.x, a.y + b.y};
+	return sum;
 }
 
 float distance_between(vec2 a, vec2 b)
 {
-    float dx = b.x - a.x;
-    float dy = b.y - a.y;
-    return sqrt(dx * dx + dy * dy);
+	float dx = b.x - a.x;
+	float dy = b.y - a.y;
+	return sqrt(dx * dx + dy * dy);
 }
 
 float clamp(float value, float min, float max)
 {
-    if (value > max)
-        return max;
-    if (value < min)
-        return min;
-    return value;
-}
-
-// Input
-
-int get_input(char c)
-{
-    return 1; // TODO!
+	if (value > max)
+		return max;
+	if (value < min)
+		return min;
+	return value;
 }
 
 // Sprite
@@ -56,16 +50,17 @@ int get_input(char c)
 
 struct entity_t
 {
-    vec2 position;
-    int sprite_index;
+	vec2 position;
+	sprite_draw_info draw_info;
+	uint8_t visible;
 } typedef entity_t;
 
 struct moving_entity_t
 {
-    entity_t entity;
-    float direction;
-    float radial_speed;     // change in direction = x * some factor
-    float tangential_speed; // change in position along the current direction = y * some factor
+	entity_t *entity;
+	float direction;
+	float radial_speed;		// change in direction = x * some factor
+	float tangential_speed; // change in position along the current direction = y * some factor
 } typedef moving_entity_t;
 
 // Player
@@ -79,164 +74,167 @@ struct moving_entity_t
 
 struct player_t
 {
-    moving_entity_t moving;
+	moving_entity_t moving;
 } typedef player_t;
 
 // Declarations
-static void WritePosToScreen(player_t* player);
+#if DEBUG
+static void WritePosToScreen(player_t *player);
+#endif
 
-
-void print_player_debug(player_t player)
+void validate_angle(float *angle)
 {
-    moving_entity_t moving = player.moving;
-    vec2 position = moving.entity.position;
+	while (*angle < -PI)
+		*angle += TAU;
+	while (*angle > PI)
+		*angle -= TAU;
 }
 
-int8_t prevValueX;
-int8_t prevValueY;
-
-void player_step(player_t *player, TrackballValues v)
+void player_step(player_t *player, vec2int input_vector)
 {
-    moving_entity_t* moving = &(player->moving);
-    entity_t* entity = &(moving->entity);
+	if (input_vector.x == 0 && input_vector.y == 0)
+		return;
 
-	moving->tangential_speed = clamp(moving->tangential_speed,
-	                                    -PLAYER_MAX_TANGENTIAL_SPEED, PLAYER_MAX_TANGENTIAL_SPEED);
+	moving_entity_t *moving = &(player->moving);
+	entity_t *entity = moving->entity;
+
+	// Tangential speed
+	moving->tangential_speed += input_vector.y;
+
+	// Radial speed
+	moving->radial_speed += input_vector.x * 0.05;
+	moving->direction += moving->radial_speed;
+	validate_angle(&(moving->direction));
+
+	// Movement
+	entity->position.x += cos(moving->direction) * moving->tangential_speed;
+	entity->position.y += sin(moving->direction) * moving->tangential_speed;
+
+	// Clamp
 	moving->tangential_speed *= PLAYER_TANGENTIAL_DAMPING;
-    moving->radial_speed = clamp(moving->radial_speed,
-                                -PLAYER_MAX_RADIAL_SPEED, PLAYER_MAX_RADIAL_SPEED);
+	moving->tangential_speed = clamp(moving->tangential_speed, -PLAYER_MAX_TANGENTIAL_SPEED, PLAYER_MAX_TANGENTIAL_SPEED);
 	moving->radial_speed *= PLAYER_RADIAL_DAMPING;
-
-    if(prevValueX == v.x || prevValueY == v.y) return;
-
-    // Tangential speed
-    entity->sprite_index = SPRITE_MARIO_UP;
-	moving->tangential_speed += v.y;
-
-    // Movement
-
-    entity->position.x += cos(moving->direction) * moving->tangential_speed;
-    entity->position.y += sin(moving->direction) * moving->tangential_speed;
-
-    // Radial speed
-    entity->sprite_index = SPRITE_MARIO_RIGHT;
-	moving->radial_speed += (v.x * 0.01);
-    moving->direction += moving->radial_speed;
-
-    while (moving->direction < -M_PI)
-        moving->direction += 2 * M_PI;
-    while (moving->direction > M_PI)
-        moving->direction -= 2 * M_PI;
-
-    prevValueX = v.x;
-	prevValueY = v.y;
+	moving->radial_speed = clamp(moving->radial_speed, -PLAYER_MAX_RADIAL_SPEED, PLAYER_MAX_RADIAL_SPEED);
 }
 
 // Canvas
 
 struct canvas_t
 {
-    vec2 size;
+	vec2 size;
 } typedef canvas_t;
 
 void draw_rect(int x0, int y0, int x1, int y1, char *color)
 {
-    // TODO!
-}
-
-void draw_background(canvas_t canvas)
-{
-    int sky_height = canvas.size.y / 3;
-    draw_rect(0, 0, canvas.size.x, sky_height, "blue");
-    draw_rect(0, sky_height, canvas.size.x, canvas.size.y, "green");
-}
-
-void draw_sprite(int sprite_index, vec2 position, float scale)
-{
-	sprite_draw_info sprite_info = (sprite_draw_info) {
-		.scale = scale,
-		.sprite_id = sprite_index,
-		.x = position.x,
-		.y = position.y,
-	};
-
-	spi_draw_sprite(sprite_info);
+	// TODO!
 }
 
 // Program
 
-#define NUM_ENTITIES 1
+#define NUM_ENTITIES 20
+#define CAMERA_DISTANCE 256
 
-canvas_t canvas = (canvas_t) {
-	.size = {800, 480}
-};
+canvas_t canvas = (canvas_t){
+	.size = {800, 480}};
 
 player_t player;
 entity_t entities[NUM_ENTITIES];
-int camera_distance = 256;
 
-int kart(TrackballValues v)
+void kart_draw()
 {
-	print_player_debug(player);
+	for (int i = 0; i < NUM_ENTITIES; i++)
+	{
+		if (!entities[i].visible) {
+			continue;
+		}
 
-	draw_background(canvas);
+		spi_draw_sprite(entities[i].draw_info);
+	}
+}
 
-	vec2 player_pos = player.moving.entity.position;
-	vec2 camera_pos = {
-		player_pos.x -
-			camera_distance * cos(player.moving.direction),
-		player_pos.y -
-			camera_distance * sin(player.moving.direction)};
+void kart_step(vec2int input_vector)
+{
+	player_step(&player, input_vector);
 
-	player_step(&player, v);
+#if DEBUG
 	WritePosToScreen(&player);
+#endif
+
 	// TODO: Sort entities by distance to camera.
+
+	vec2 camera_pos = {
+		player.moving.entity->position.x - CAMERA_DISTANCE * cos(player.moving.direction),
+		player.moving.entity->position.y - CAMERA_DISTANCE * sin(player.moving.direction)};
+
+	vec2 origin = {
+		canvas.size.x / 2 - 8,
+		canvas.size.y};
 
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		// entity_t entity = entities[i];
-		entity_t entity = player.moving.entity;
+		entity_t *entity = &entities[i];
+		entity->visible = 1;
+
 		float angle =
-			atan2(entity.position.y - camera_pos.y, entity.position.x - camera_pos.x) -
-			player.moving.direction;
+			atan2(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
+		validate_angle(&angle);
 
-		while (angle > M_PI)
-			angle -= 2 * M_PI;
-		while (angle < -M_PI)
-			angle += 2 * M_PI;
-		if (!(-M_PI / 2 < angle && angle < M_PI / 2))
+		if (!(-PI_HALF < angle && angle < PI_HALF)) {
+			entity->visible = 0;
 			continue;
-		;
+		}
 
-		float distance = distance_between(camera_pos, entity.position);
-		float scale = clamp(100 / powf(distance, 0.8), 0.01, 2.5);
-		scale = round(scale * 100) / 100;
-
-		vec2 origin = {
-			canvas.size.x / 2 - 16,
-			canvas.size.y};
+		float distance = distance_between(camera_pos, entity->position);
+		int scale = round(clamp(8000 / powf(distance, 0.8), 1, 256));
 
 		vec2 offset = {
-			32 * powf(distance, 0.4) * cos(angle - M_PI / 2),
-			16 * powf(distance, 0.3) * sin(angle - M_PI / 2)};
+			32 * powf(distance, 0.4) * cos(angle - PI_HALF),
+			16 * powf(distance, 0.35) * sin(angle - PI_HALF)};
 
-		draw_sprite(
-			entity.sprite_index,
-			vec2_add(origin, offset),
-			scale);
+		int x = origin.x + offset.x;
+		int y = origin.y + offset.y;
+
+		entity->draw_info.scale = scale;
+		entity->draw_info.x = x;
+		entity->draw_info.y = y;
+
+		if (x < 0 || canvas.size.x < x || y < 0 || canvas.size.y < y) {
+			entity->visible = 0;
+			continue;
+		}
 	}
-
-    return 0;
 }
 
-static void WritePosToScreen(player_t* player){
+void kart_init()
+{
+	for (int i = 0; i < NUM_ENTITIES; i++)
+	{
+		entities[i].position.x = i * 64;
+		entities[i].position.y = i * 64;
+
+		entities[i].draw_info.sprite_id = 0;
+		entities[i].draw_info.x = 0;
+		entities[i].draw_info.y = 0;
+		entities[i].draw_info.scale = 100;
+	}
+
+	player.moving.entity = &entities[0];
+
+	vec2int v = {0, 0};
+	kart_step(v);
+}
+
+#if DEBUG
+static void WritePosToScreen(player_t *player)
+{
 	float x = player->moving.radial_speed;
 	float y = player->moving.tangential_speed;
 	float direction = player->moving.direction;
 	float position = player->moving.entity.position.x;
 
 	// Determine pad direction
-	if (x == 0 && y == 0) {
+	if (x == 0 && y == 0)
+	{
 		// No movement detected
 		return;
 	}
@@ -245,3 +243,4 @@ static void WritePosToScreen(player_t* player){
 	// SegmentLCD_Number(round(direction));
 	// SegmentLCD_LowerNumber(round(position));
 }
+#endif
