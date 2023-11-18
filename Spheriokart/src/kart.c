@@ -103,7 +103,7 @@ void player_step(player_t *player, vec2int input_vector)
 	moving->tangential_speed += input_vector.y;
 
 	// Radial speed
-	moving->radial_speed += input_vector.x * 0.05;
+	moving->radial_speed += input_vector.x * 0.01;
 	moving->direction += moving->radial_speed;
 	validate_angle(&(moving->direction));
 
@@ -257,6 +257,9 @@ void kart_init()
 	player.moving.entity = &entities[0];
 	player.moving.direction = 0;
 	player.moving.entity->draw_info.sprite_id = 0;
+	player.moving.entity->position.x = -512;
+	player.moving.entity->position.y = 256;
+	player.moving.direction = 0.1;
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);

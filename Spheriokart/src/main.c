@@ -72,7 +72,7 @@ int main()
 	while (1)
 	{
 		input_vector.x = 0;
-		input_vector.y = 0;
+		input_vector.y = 4*5;
 
 		/* BUTTONS */
 
@@ -82,7 +82,7 @@ int main()
 
 		if (b & BUTTON1)
 		{
-			input_vector.x = 5;
+			input_vector.x = -1;
 			GPIO_PinOutSet(LED_PORT, LED0);
 #if DEBUG
 			printf("Button1 pressed!\n");
@@ -90,7 +90,7 @@ int main()
 		}
 		if (b & BUTTON2)
 		{
-			input_vector.y = 64;
+			input_vector.x = 1;
 			GPIO_PinOutSet(LED_PORT, LED1);
 #if DEBUG
 			printf("Button2 pressed!\n");
