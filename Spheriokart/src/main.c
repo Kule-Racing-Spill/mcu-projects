@@ -72,7 +72,7 @@ int main()
 	while (1)
 	{
 		input_vector.x = 0;
-		input_vector.y = 4*5;
+		input_vector.y = 50;
 
 		/* BUTTONS */
 

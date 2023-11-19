@@ -11,7 +11,7 @@ typedef __int32 int32_t;
 #include <stdint.h>
 #endif
 
-int32_t fast_round(double x) {
+extern inline int32_t fast_round(double x) {
 	#ifndef NO_FAST_TRUNCATE
 
 	const double MAGIC_ROUND = 6755399441055744.0; /* http://stereopsis.com/sree/fpu2006.html */
@@ -46,7 +46,7 @@ int32_t fast_round(double x) {
 	#endif
 }
 
-double fast_sin(double x) {
+extern inline double fast_sin(double x) {
 	const double PI = 3.14159265358979323846264338327950288;
 	const double INVPI = 0.31830988618379067153776752674502872;
 	const double A = 0.00735246819687011731341356165096815;

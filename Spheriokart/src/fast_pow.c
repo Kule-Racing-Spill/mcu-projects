@@ -1,6 +1,6 @@
 
 // src: https://martin.ankerl.com/2007/10/04/optimized-pow-approximation-for-java-and-c-c/
-double fast_pow(double a, double b) {
+extern inline double fast_pow(double a, double b) {
   // calculate approximation with fraction of the exponent
   int e = (int) b;
   union {

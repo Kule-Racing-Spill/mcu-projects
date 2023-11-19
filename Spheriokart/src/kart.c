@@ -26,11 +26,11 @@ vec2 vec2_add(vec2 a, vec2 b)
 	return sum;
 }
 
-float distance_between(vec2 a, vec2 b)
+static inline float distance_between(vec2 a, vec2 b)
 {
 	float dx = b.x - a.x;
 	float dy = b.y - a.y;
-	return sqrt(dx * dx + dy * dy);
+	return fabs(dx) + fabs(dy);
 }
 
 float clamp(float value, float min, float max)
@@ -47,7 +47,7 @@ float clamp(float value, float min, float max)
 #define SPRITE_MARIO_RIGHT 0
 #define SPRITE_MARIO_UP 1
 #define SPRITE_MARIO_LEFT 2
-#define SPRITE_HALF 40 // this considers scaling
+#define SPRITE_HALF 64 // this considers scaling
 
 // Entities
 
@@ -132,9 +132,9 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 200
+#define NUM_ENTITIES 260
 #define CAMERA_PLAYER_DISTANCE 256
-#define CAMERA_RENDER_DISTANCE 4096
+#define CAMERA_RENDER_DISTANCE (4096)
 
 canvas_t canvas = (canvas_t){
 	.size = {800, 480}};
@@ -142,26 +142,29 @@ canvas_t canvas = (canvas_t){
 player_t player;
 entity_t entities[NUM_ENTITIES];
 entity_t *entity_pointers[NUM_ENTITIES];
-
+int visible_count = NUM_ENTITIES;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
-    entity_t a = **((entity_t **)pa);
-    entity_t b = **((entity_t **)pb);
+    entity_t *a = *((entity_t **)pa);
+    entity_t *b = *((entity_t **)pb);
 
-    if (a.distance_to_camera == b.distance_to_camera)
+    if (!a->visible) return 1;
+    if (!b->visible) return -1;
+
+    if (a->distance_to_camera == b->distance_to_camera)
         return 0;
-    else if (a.distance_to_camera < b.distance_to_camera)
-        return 1;
-    else
+    else if (a->distance_to_camera < b->distance_to_camera)
         return -1;
+    else
+        return 1;
 }
 
-void kart_draw()
+extern inline void kart_draw()
 {
-	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t*), compare_distance_to_camera);
+	qsort(entity_pointers, visible_count, sizeof(entity_t*), compare_distance_to_camera);
 
-	for (int i = 0; i < NUM_ENTITIES; i++)
+	for (int i = visible_count - 1; i >= 0; i--)
 	{
 		if (!entity_pointers[i]->visible) {
 			continue;
@@ -171,7 +174,7 @@ void kart_draw()
 	}
 }
 
-void kart_step(vec2int input_vector, int frames)
+extern inline void kart_step(vec2int input_vector, int frames)
 {
 	for (int i = 0; i < frames; i++) {
 		player_step(&player, input_vector);
@@ -181,8 +184,6 @@ void kart_step(vec2int input_vector, int frames)
 	WritePosToScreen(&player);
 #endif
 
-	// TODO: Sort entities by distance to camera.
-
 	vec2 camera_pos = {
 		player.moving.entity->position.x - CAMERA_PLAYER_DISTANCE * fast_sin(PI_HALF - player.moving.direction),
 		player.moving.entity->position.y - CAMERA_PLAYER_DISTANCE * fast_sin(player.moving.direction)};
@@ -191,19 +192,27 @@ void kart_step(vec2int input_vector, int frames)
 		canvas.size.x / 2 - SPRITE_HALF,
 		canvas.size.y};
 
+	visible_count = 0;
+
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
 		entity_t *entity = &entities[i];
 		entity->visible = 0;
 
-		float distance = distance_between(camera_pos, entity->position);
-		entity->distance_to_camera = distance;
-		if (distance > CAMERA_RENDER_DISTANCE) {
+		float distance_to_camera = distance_between(camera_pos, entity->position);
+
+		entity->distance_to_camera = distance_to_camera;
+		if (distance_to_camera > CAMERA_RENDER_DISTANCE) {
+			continue;
+		}
+
+		float distance_to_player = distance_between(player.moving.entity->position, entity->position);
+		if (distance_to_player > distance_to_camera) {
 			continue;
 		}
 
 		float angle =
-				fast_atan2(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
+				fast_atan2_b(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
 		validate_angle(&angle);
 
 		if (angle < -PI_HALF || PI_HALF < angle) {
@@ -211,8 +220,8 @@ void kart_step(vec2int input_vector, int frames)
 		}
 
 		vec2 offset = {
-			32 * fast_pow(distance, 0.4) * sin(angle),
-			16 * fast_pow(distance, 0.35) * sin(angle - PI_HALF)};
+			32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
+			16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
 
 		int x = origin.x + offset.x;
 		int y = origin.y + offset.y;
@@ -225,13 +234,15 @@ void kart_step(vec2int input_vector, int frames)
 			continue;
 		}
 
-		int scale = round(clamp(8000 / fast_pow(distance, 0.8), 1, 256));
+		int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
 		entity->draw_info.scale = scale;
 
-		if (scale < 8) {
+		if (scale < 4) {
 			continue;
 		}
 
+		entity_pointers[visible_count] = entity;
+		visible_count += 1;
 		entity->visible = 1;
 	}
 }
@@ -263,6 +274,7 @@ void kart_init()
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);
+	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t*), compare_distance_to_camera);
 }
 
 #if DEBUG
