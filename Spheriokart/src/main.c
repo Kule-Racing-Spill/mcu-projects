@@ -64,6 +64,7 @@ int main()
 	kart_init();
 	spi_init();
 	gpio_init();
+	spi_send_sprites();
 
 	/* Button stuff */
 	Button_Init(BUTTON1 | BUTTON2);

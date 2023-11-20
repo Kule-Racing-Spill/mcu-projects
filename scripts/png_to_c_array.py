@@ -1,27 +1,25 @@
 from PIL import Image
 
 colors = [
-"8c8fae",
-"584563",
-"3e2137",
-"9a6348",
-"d79b7d",
-"f5edba",
-"c0c741",
-"647d34",
-"e4943a",
-"9d303b",
-"d26471",
-"70377f",
-"7ec4c1",
-"34859d",
-"17434b",
-"1f0e1c",
+"757bb8",
+"c6d9a1",
+"2540c1",
+"004bff",
+"00beff",
+"684026",
+"d24c20",
+"e8aae8",
+"1d6d3b",
+"47b74a",
+"8fe968",
+"eef78f",
+"79dcf5",
+"d2cfd5",
+"a2a2a2",
+"000000",
 ]
 
-filename = "sphere"
-width = 32
-height = 32
+filename = "barrel"
 
 img = Image.open(f"{filename}.png").convert("RGB")
 pixels = img.load()
@@ -31,7 +29,10 @@ def rgb2hex(r, g, b):
 
 with open(f"{filename}.c", "w") as f:
     
-    f.write(f"char sprite[{int(width*height/2)}] = {{\n")
+    width = img.width
+    height = img.height
+
+    f.write(f"uint8_t sprite_{filename}[{int(width*height/2)}] = {{\n")
 
     for y in range(height):
         f.write("\t")

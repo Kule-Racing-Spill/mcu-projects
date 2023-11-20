@@ -97,8 +97,8 @@ void spi_send_test(int i) {
 void spi_init(void) {
 
 	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
-	//initData.portLocation = _USART_ROUTE_LOCATION_LOC0;
-	initData.bitRate = 1000000;
+	initData.portLocation = _USART_ROUTE_LOCATION_LOC0;
+	initData.bitRate = 6000000;
 
 	// Initialize a SPI driver instance
 	SPIDRV_Init( handle, &initData );
@@ -143,9 +143,9 @@ void toggle_led() {
 
 int x = 0;
 int y = 0;
-int dx = 5;
-int dy = 5;
-int scale = 0;
+int dx = 2;
+int dy = 2;
+int scale_offset = 0;
 
 void draw() {
 
@@ -153,34 +153,59 @@ void draw() {
 		0,
 		x,
 		y,
-		scale,
+		80,
 	};
 
-	spi_draw_sprite(sprite_info_a);
+	scale_offset += 1;
+
+	for (int i = 1; i < 16; i++) {
+		for (int j = 1; j < 10; j++) {
+			sprite_info_a.x = x + 16*i;
+			sprite_info_a.y = y + 16*j;
+			sprite_info_a.scale = i * j + scale_offset;
+
+			spi_draw_sprite(sprite_info_a);
+
+		}
+	}
+
+	if (scale_offset > 50) {
+		scale_offset = 0;
+	}
 
 	x += dx;
 	y += dy;
-	if (x <= 0 || 800 <= x) {
+
+	if (x <= 0 || 300 <= x) {
 		dx *= -1;
 	}
-	if (y <= 0 || 480 <= y) {
+
+	if (y <= 0 || 200 <= y) {
 		dy *= -1;
-	}
-	if (scale > 255) {
-		scale = 0;
 	}
 }
 
 void GPIO_ODD_IRQHandler(void)
 {
-	/* Acknowledge interrupt */
+	draw();
+
+	GPIO_PinOutSet(2, 9);
+	GPIO_PinOutSet(2, 11);
+	GPIO_PinOutSet(2, 8);
+	GPIO_PinOutSet(2, 10);
+
+	GPIO_IntClear(1 << PE15);
 }
 
 void GPIO_EVEN_IRQHandler(void)
 {
-	/* Acknowledge interrupt */
-
 	draw();
+
+	GPIO_PinOutSet(2, 9);
+	GPIO_PinOutSet(2, 11);
+	GPIO_PinOutSet(2, 8);
+	GPIO_PinOutSet(2, 10);
+
 	GPIO_IntClear(1 << PE15);
 }
 
@@ -205,16 +230,12 @@ int main( void )
 	/* Ensure core frequency has been updated */
 	SystemCoreClockUpdate();
 
+
+
 	gpio_setup();
 	spi_init();
 
-	GPIO_PinOutSet(2, 8);
-	GPIO_PinOutSet(2, 10);
-
-
-	while (1) {
-		draw();
-	}
+	while (1) {}
 
 	return 0;
 }

@@ -86,7 +86,7 @@ struct player_t
 static void WritePosToScreen(player_t *player);
 #endif
 
-void validate_angle(float *angle)
+extern inline void validate_angle(float *angle)
 {
 	while (*angle < -PI)
 		*angle += TAU;
@@ -94,16 +94,16 @@ void validate_angle(float *angle)
 		*angle -= TAU;
 }
 
-void player_step(player_t *player, vec2int input_vector)
+extern inline void player_step(player_t *player, vec2int input_vector, int frames)
 {
 	moving_entity_t *moving = &(player->moving);
 	entity_t *entity = moving->entity;
 
 	// Tangential speed
-	moving->tangential_speed += input_vector.y;
+	moving->tangential_speed += input_vector.y * frames;
 
 	// Radial speed
-	moving->radial_speed += input_vector.x * 0.01;
+	moving->radial_speed += input_vector.x * 0.01 * frames;
 	moving->direction += moving->radial_speed;
 	validate_angle(&(moving->direction));
 
@@ -132,7 +132,7 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 260
+#define NUM_ENTITIES 300
 #define CAMERA_PLAYER_DISTANCE 256
 #define CAMERA_RENDER_DISTANCE (4096)
 
@@ -148,9 +148,6 @@ int compare_distance_to_camera(const void *pa, const void *pb)
 {
     entity_t *a = *((entity_t **)pa);
     entity_t *b = *((entity_t **)pb);
-
-    if (!a->visible) return 1;
-    if (!b->visible) return -1;
 
     if (a->distance_to_camera == b->distance_to_camera)
         return 0;
@@ -176,9 +173,7 @@ extern inline void kart_draw()
 
 extern inline void kart_step(vec2int input_vector, int frames)
 {
-	for (int i = 0; i < frames; i++) {
-		player_step(&player, input_vector);
-	}
+	player_step(&player, input_vector, frames);
 
 #if DEBUG
 	WritePosToScreen(&player);
@@ -229,17 +224,12 @@ extern inline void kart_step(vec2int input_vector, int frames)
 		entity->draw_info.x = x;
 		entity->draw_info.y = y;
 
-		int border = 80; // TODO: why does it crash without this?
-		if (x < border || canvas.size.x - border < x || y < border || canvas.size.y - border < y) {
+		if (x < 0 || canvas.size.x - 0 < x || y < 0 || canvas.size.y - 0 < y) {
 			continue;
 		}
 
 		int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
 		entity->draw_info.scale = scale;
-
-		if (scale < 4) {
-			continue;
-		}
 
 		entity_pointers[visible_count] = entity;
 		visible_count += 1;
@@ -249,28 +239,40 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 void kart_init()
 {
-	for (int i = 0; i < NUM_ENTITIES; i++)
-	{
-		entities[i].position.x = i * (128+64);
-		entities[i].position.y = 0;
-		if (i % 2 == 0) {
-			entities[i].position.y += 512;
-		}
+	int R = 10 * 1028;
+	int NUM_ENTITIES_HALF = NUM_ENTITIES / 2;
 
+	for (int i = 0; i < NUM_ENTITIES; i++) {
 		entities[i].draw_info.sprite_id = 1;
-		entities[i].draw_info.x = 0;
-		entities[i].draw_info.y = 0;
-		entities[i].draw_info.scale = 100;
-
 		entity_pointers[i] = &entities[i];
+	}
+
+	for (int i = 0; i < NUM_ENTITIES_HALF; i++)
+	{
+		int r = R;
+		if (i % 2 == 0) {
+			r = R*0.95;
+		}
+		entities[i].position.x = - R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
+		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
+	}
+
+	for (int i = NUM_ENTITIES_HALF; i < NUM_ENTITIES; i++)
+	{
+		int r = R;
+		if (i % 2 == 0) {
+			r = R*0.95;
+		}
+		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
+		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
 	}
 
 	player.moving.entity = &entities[0];
 	player.moving.direction = 0;
 	player.moving.entity->draw_info.sprite_id = 0;
-	player.moving.entity->position.x = -512;
-	player.moving.entity->position.y = 256;
-	player.moving.direction = 0.1;
+	player.moving.entity->position.x = 0;
+	player.moving.entity->position.y = 0;
+	player.moving.direction = PI / 3;
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);
