@@ -332,7 +332,7 @@ void kart_init()
 	for (int i = 0; i < NUM_ENTITIES; i++) {
 		float x = entities[i].position.x;
 		float y = entities[i].position.y;
-		entities[i].draw_info.sprite_id = 1;
+		entities[i].draw_info.sprite_id = 8 + (rand() % 3);
 		entities[i].visible = 0;
 		chunk_t *chunk = &chunks[chunk_index(x, y)];
 

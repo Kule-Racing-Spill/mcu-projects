@@ -1,25 +1,25 @@
 from PIL import Image
 
 colors = [
-"757bb8",
-"c6d9a1",
-"2540c1",
-"004bff",
-"00beff",
-"684026",
-"d24c20",
-"e8aae8",
-"1d6d3b",
-"47b74a",
-"8fe968",
-"eef78f",
-"79dcf5",
-"d2cfd5",
-"a2a2a2",
+"101010",
+"283f61",
+"89b2a0",
+"170e9f",
+"0202f0",
+"00bef8",
+"353439",
+"c15a1d",
+"d4b7f1",
+"356349",
+"16c54c",
+"19e16d",
+"bad3a9",
+"98eafe",
+"a1c9fd",
 "000000",
 ]
 
-filename = "barrel"
+filename = "tree01"
 
 img = Image.open(f"{filename}.png").convert("RGB")
 pixels = img.load()
