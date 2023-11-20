@@ -28,12 +28,12 @@
 		<link>
 			<name>Drivers</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/Drivers/</location>
+			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/Drivers</location>
 		</link>
 		<link>
 			<name>emusb</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/emusb/</location>
+			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/emusb</location>
 		</link>
 		<link>
 			<name>emlib/em_assert.c</name>
@@ -111,6 +111,26 @@
 			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/button.h</location>
 		</link>
 		<link>
+			<name>src/fast_atan2.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_atan2.c</locationURI>
+		</link>
+		<link>
+			<name>src/fast_math.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_math.h</locationURI>
+		</link>
+		<link>
+			<name>src/fast_pow.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_pow.c</locationURI>
+		</link>
+		<link>
+			<name>src/fast_sin.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_sin.c</locationURI>
+		</link>
+		<link>
 			<name>src/kart.c</name>
 			<type>1</type>
 			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/kart.c</location>
@@ -123,7 +143,7 @@
 		<link>
 			<name>src/lib</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/lib/</location>
+			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/lib</location>
 		</link>
 		<link>
 			<name>src/main.c</name>
