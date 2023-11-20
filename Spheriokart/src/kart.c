@@ -67,6 +67,37 @@ struct moving_entity_t
 	float tangential_speed; // change in position along the current direction = y * some factor
 } typedef moving_entity_t;
 
+
+#define CHUNK_WIDTH 1024
+#define WORLD_WIDTH 24
+#define MAX_ENTITIES_PER_CHUNK 16
+struct chunk_t {
+	int i;
+	entity_t* entities[MAX_ENTITIES_PER_CHUNK];
+} typedef chunk_t;
+
+chunk_t chunks[WORLD_WIDTH*WORLD_WIDTH];
+
+int chunk_index(float x, float y) {
+	int offset = CHUNK_WIDTH * WORLD_WIDTH / 2;
+	int cx = (x + offset) / CHUNK_WIDTH;
+	if (cx < 0) {
+		cx = 0;
+	}
+	else if (cx > (WORLD_WIDTH - 1)) {
+		cx = WORLD_WIDTH - 1;
+	}
+
+	int cy = (y + offset) / CHUNK_WIDTH;
+	if (cy < 0) {
+		cy = 0;
+	}
+	else if (cy > (WORLD_WIDTH - 1)) {
+		cy = WORLD_WIDTH - 1;
+	}
+	return cy * WORLD_WIDTH + cx;
+}
+
 // Player
 
 #define PLAYER_RADIAL_ACC 0.0003
@@ -132,17 +163,17 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 300
+#define NUM_ENTITIES 450
 #define CAMERA_PLAYER_DISTANCE 256
-#define CAMERA_RENDER_DISTANCE (4096)
+#define CAMERA_RENDER_DISTANCE 4096
 
 canvas_t canvas = (canvas_t){
 	.size = {800, 480}};
 
 player_t player;
 entity_t entities[NUM_ENTITIES];
-entity_t *entity_pointers[NUM_ENTITIES];
-int visible_count = NUM_ENTITIES;
+entity_t *entity_draw_order[NUM_ENTITIES];
+int visible_count = 0;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
@@ -159,16 +190,63 @@ int compare_distance_to_camera(const void *pa, const void *pb)
 
 extern inline void kart_draw()
 {
-	qsort(entity_pointers, visible_count, sizeof(entity_t*), compare_distance_to_camera);
+	qsort(entity_draw_order, visible_count, sizeof(entity_t*), compare_distance_to_camera);
 
 	for (int i = visible_count - 1; i >= 0; i--)
 	{
-		if (!entity_pointers[i]->visible) {
+		if (!entity_draw_order[i]->visible) {
 			continue;
 		}
 
-		spi_draw_sprite(entity_pointers[i]->draw_info);
+		spi_draw_sprite(entity_draw_order[i]->draw_info);
 	}
+}
+
+int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin) {
+	entity->visible = 0;
+
+	float distance_to_camera = distance_between(camera_pos, entity->position);
+
+	entity->distance_to_camera = distance_to_camera;
+	if (distance_to_camera > CAMERA_RENDER_DISTANCE) {
+		return 0;
+	}
+
+	float distance_to_player = distance_between(player.moving.entity->position, entity->position);
+	if (distance_to_player > distance_to_camera) {
+		return 1;
+	}
+
+	float angle =
+			fast_atan2_b(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
+	validate_angle(&angle);
+
+	if (angle < -PI_HALF || PI_HALF < angle) {
+		return 1;
+	}
+
+	vec2 offset = {
+		32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
+		16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
+
+	int x = origin.x + offset.x;
+	int y = origin.y + offset.y;
+
+	entity->draw_info.x = x;
+	entity->draw_info.y = y;
+
+	if (x < 0 || canvas.size.x - 0 < x || y < 0 || canvas.size.y - 0 < y) {
+		return 1;
+	}
+
+	int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
+	entity->draw_info.scale = scale;
+
+	entity_draw_order[visible_count] = entity;
+	visible_count += 1;
+	entity->visible = 1;
+
+	return 0;
 }
 
 extern inline void kart_step(vec2int input_vector, int frames)
@@ -189,63 +267,32 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	visible_count = 0;
 
-	for (int i = 0; i < NUM_ENTITIES; i++)
-	{
-		entity_t *entity = &entities[i];
-		entity->visible = 0;
+	set_draw_info(player.moving.entity, camera_pos, origin);
 
-		float distance_to_camera = distance_between(camera_pos, entity->position);
+	int player_chunk_index = chunk_index(player.moving.entity->position.x, player.moving.entity->position.y);
 
-		entity->distance_to_camera = distance_to_camera;
-		if (distance_to_camera > CAMERA_RENDER_DISTANCE) {
-			continue;
+	for (int x = -3; x <= 3; x++) {
+		for (int y = -3; y <= 3; y++) {
+			int ci = player_chunk_index + x + y * WORLD_WIDTH;
+			if (ci < 0 || WORLD_WIDTH*WORLD_WIDTH <= ci) {
+				continue;
+			}
+			chunk_t *chunk = &chunks[ci];
+			for (int i = 0; i < chunk->i; i++)
+			{
+				int res = set_draw_info(chunk->entities[i], camera_pos, origin);
+				if (x != 0 && y != 0 && res != 0) {
+					break;
+				}
+			}
 		}
-
-		float distance_to_player = distance_between(player.moving.entity->position, entity->position);
-		if (distance_to_player > distance_to_camera) {
-			continue;
-		}
-
-		float angle =
-				fast_atan2_b(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
-		validate_angle(&angle);
-
-		if (angle < -PI_HALF || PI_HALF < angle) {
-			continue;
-		}
-
-		vec2 offset = {
-			32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
-			16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
-
-		int x = origin.x + offset.x;
-		int y = origin.y + offset.y;
-
-		entity->draw_info.x = x;
-		entity->draw_info.y = y;
-
-		if (x < 0 || canvas.size.x - 0 < x || y < 0 || canvas.size.y - 0 < y) {
-			continue;
-		}
-
-		int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
-		entity->draw_info.scale = scale;
-
-		entity_pointers[visible_count] = entity;
-		visible_count += 1;
-		entity->visible = 1;
 	}
 }
 
 void kart_init()
 {
-	int R = 10 * 1028;
+	int R = 8192;
 	int NUM_ENTITIES_HALF = NUM_ENTITIES / 2;
-
-	for (int i = 0; i < NUM_ENTITIES; i++) {
-		entities[i].draw_info.sprite_id = 1;
-		entity_pointers[i] = &entities[i];
-	}
 
 	for (int i = 0; i < NUM_ENTITIES_HALF; i++)
 	{
@@ -267,16 +314,32 @@ void kart_init()
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
 	}
 
-	player.moving.entity = &entities[0];
+	for (int i = 0; i < (WORLD_WIDTH * WORLD_WIDTH); i++) {
+		chunk_t *chunk = &chunks[i];
+		chunk->i = 0;
+	}
+
+	for (int i = 0; i < NUM_ENTITIES; i++) {
+		float x = entities[i].position.x;
+		float y = entities[i].position.y;
+		entities[i].draw_info.sprite_id = 1;
+		entities[i].visible = 0;
+		chunk_t *chunk = &chunks[chunk_index(x, y)];
+
+		vec2 origin = {0, 0};
+		if (distance_between(entities[i].position, origin) < 512) continue;
+		if (chunk->i >= MAX_ENTITIES_PER_CHUNK) continue;
+
+		chunk->entities[chunk->i] = &entities[i];
+		chunk->i++;
+	}
+
+	player.moving.entity = malloc(sizeof(entity_t));
 	player.moving.direction = 0;
 	player.moving.entity->draw_info.sprite_id = 0;
 	player.moving.entity->position.x = 0;
 	player.moving.entity->position.y = 0;
 	player.moving.direction = PI / 3;
-
-	vec2int v = {0, 0};
-	kart_step(v, 1);
-	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t*), compare_distance_to_camera);
 }
 
 #if DEBUG
