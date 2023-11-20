@@ -184,7 +184,7 @@ extern inline void kart_draw()
 	}
 }
 
-int set_entity_render_data(entity_t *entity, vec2 camera_pos, vec2 prigin)
+int set_entity_render_data(entity_t *entity, vec2 camera_pos, vec2 origin)
 {
 	entity->visible = 0;
 
@@ -269,26 +269,28 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	for (int i = road_l_start; i < road_l_end; i++)
 	{
-		int res = set_entity_render_data(road_entities_l[i], camera_pos, origin);
+		int res = set_entity_render_data(&road_entities_l[i], camera_pos, origin);
 		if (res != 0)
 			road_l_start = i;
 	}
 	int i = road_l_end;
-	while (set_entity_render_data(road_entities_l[i], camera_pos, origin) == 0)
+	while (set_entity_render_data(&road_entities_l[i], camera_pos, origin) == 0)
 	{
 		road_l_end++;
+		i++;
 	}
 
 	for (int i = road_r_start; i < road_r_end; i++)
 	{
-		int res = set_entity_render_data(road_entities_r[i], camera_pos, origin);
+		int res = set_entity_render_data(&road_entities_r[i], camera_pos, origin);
 		if (res != 0)
 			road_r_start = i;
 	}
-	int i = road_r_end;
-	while (set_entity_render_data(road_entities_r[i], camera_pos, origin) == 0)
+	i = road_r_end;
+	while (set_entity_render_data(&road_entities_r[i], camera_pos, origin) == 0)
 	{
 		road_r_end++;
+		i++;
 	}
 }
 
@@ -296,14 +298,14 @@ void kart_init()
 {
 	for (int i = 0; i < NUM_ROAD_ENTITIES; i++)
 	{
-		road_entities_l[i].position.x = i * 128;
+		road_entities_l[i].position.x = i * 512;
 		road_entities_l[i].position.y = 0;
 		road_entities_l[i].draw_info.sprite_id = 1;
 		road_entities_l[i].draw_info.x = 0;
 		road_entities_l[i].draw_info.y = 0;
 		road_entities_l[i].draw_info.scale = 100;
 
-		road_entities_r[i].position.x = i * 128;
+		road_entities_r[i].position.x = i * 512;
 		road_entities_r[i].position.y = 512;
 		road_entities_r[i].draw_info.sprite_id = 1;
 		road_entities_r[i].draw_info.x = 0;
