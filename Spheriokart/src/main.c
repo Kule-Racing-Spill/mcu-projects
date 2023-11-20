@@ -72,6 +72,12 @@ int main()
 
 	input_vector.x = 0;
 	input_vector.y = 0;
+
+	vec2int prev_input_vector = {
+			.x = 0,
+			.y = 0
+	};
+
 	while (1)
 	{
 
@@ -105,6 +111,7 @@ int main()
 		if (USBH_DeviceConnected())
 		{
 			GetTrackballValues(&input_vector);
+
 		}
 		else
 		{
@@ -116,6 +123,16 @@ int main()
 		/* KART */
 
 		if (frames) {
+			if(prev_input_vector.x == input_vector.x){
+				input_vector.x = 0;
+			}else{
+				prev_input_vector.x = input_vector.x;
+			}
+			if(prev_input_vector.y == input_vector.y){
+				input_vector.y = 0;
+			}else{
+				prev_input_vector.y = input_vector.y;
+			}
 			kart_step(input_vector, frames);
 			frames = 0;
 			b = 0;

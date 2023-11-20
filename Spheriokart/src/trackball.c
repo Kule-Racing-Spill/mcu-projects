@@ -149,11 +149,14 @@ static void CheckPadSwipe(vec2int *coords)
     }
 
     // Extract x and y values
-    x = usbData[1];
-    y = usbData[2];
+    y = usbData[1];
+    x = usbData[2];
 
-    coords->x = usbData[1];
-    coords->y = usbData[2];
+    x/=3; // Sensitivity decrease for x-axis
+    y*=2;
+
+    coords->x = x;
+    coords->y = y;
 
     // Determine pad direction
     if (x == 0 && y == 0)

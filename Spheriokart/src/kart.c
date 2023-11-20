@@ -308,7 +308,7 @@ void kart_init()
 	{
 		int r = R;
 		if (i % 2 == 0) {
-			r = R*0.95;
+			r = R*0.92;
 		}
 		entities[i].position.x = - R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
@@ -318,7 +318,7 @@ void kart_init()
 	{
 		int r = R;
 		if (i % 2 == 0) {
-			r = R*0.95;
+			r = R*0.92;
 		}
 		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
