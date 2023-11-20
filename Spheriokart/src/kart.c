@@ -103,7 +103,7 @@ int chunk_index(float x, float y) {
 #define PLAYER_RADIAL_ACC 0.0003
 #define PLAYER_MAX_RADIAL_SPEED 0.02
 #define PLAYER_TANGENTIAL_ACC 1
-#define PLAYER_MAX_TANGENTIAL_SPEED 10
+#define PLAYER_MAX_TANGENTIAL_SPEED 50
 #define PLAYER_RADIAL_DAMPING 0.9
 #define PLAYER_TANGENTIAL_DAMPING 0.96
 
@@ -285,6 +285,16 @@ extern inline void kart_step(vec2int input_vector, int frames)
 					break;
 				}
 			}
+		}
+	}
+
+	chunk_t *chunk = &chunks[player_chunk_index];
+	for (int i = 0; i < chunk->i; i++)
+	{
+		entity_t *e = chunk->entities[i];
+		if (distance_between(e->position, player.moving.entity->position) < 96) {
+			player.moving.tangential_speed = 0;
+			break;
 		}
 	}
 }
