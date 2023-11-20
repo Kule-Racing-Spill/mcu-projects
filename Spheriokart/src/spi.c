@@ -73,6 +73,9 @@ void spi_send_test(int i) {
 
 void spi_init(void) {
 	SPIDRV_Init_t initData = SPIDRV_MASTER_USART1;
+	#if !DEV
+		initData.portLocation = _USART_ROUTE_LOCATION_LOC0;
+	#endif
 	initData.bitRate = 6000000;
 	SPIDRV_Init( handle, &initData );
 }

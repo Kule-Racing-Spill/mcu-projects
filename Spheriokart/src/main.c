@@ -7,8 +7,8 @@
 #include "button.h"
 
 #define DEBUG 0
-#define DEV 1
-#define TRACKBALL 0
+#define DEV 0
+#define TRACKBALL 1
 
 #define LED_PORT gpioPortE
 #define LED0 2
@@ -70,10 +70,10 @@ int main()
 	Button_Init(BUTTON1 | BUTTON2);
 	uint32_t b;
 
+	input_vector.x = 0;
+	input_vector.y = 0;
 	while (1)
 	{
-		input_vector.x = 0;
-		input_vector.y = 5;
 
 		/* BUTTONS */
 
@@ -104,7 +104,7 @@ int main()
 
 		if (USBH_DeviceConnected())
 		{
-			GetTrackballValues(&v);
+			GetTrackballValues(&input_vector);
 		}
 		else
 		{
