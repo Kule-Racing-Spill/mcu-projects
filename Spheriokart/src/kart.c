@@ -132,7 +132,8 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 260
+#define NUM_ENTITIES 200
+#define NUM_ROAD_ENTITIES 1000
 #define CAMERA_PLAYER_DISTANCE 256
 #define CAMERA_RENDER_DISTANCE (4096)
 
@@ -141,32 +142,41 @@ canvas_t canvas = (canvas_t){
 
 player_t player;
 entity_t entities[NUM_ENTITIES];
+entity_t road_entities_l[NUM_ROAD_ENTITIES];
+int road_l_start = 0;
+int road_l_end = 0;
+entity_t road_entities_r[NUM_ROAD_ENTITIES];
+int road_r_start = 0;
+int road_r_end = 0;
 entity_t *entity_pointers[NUM_ENTITIES];
 int visible_count = NUM_ENTITIES;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
-    entity_t *a = *((entity_t **)pa);
-    entity_t *b = *((entity_t **)pb);
+	entity_t *a = *((entity_t **)pa);
+	entity_t *b = *((entity_t **)pb);
 
-    if (!a->visible) return 1;
-    if (!b->visible) return -1;
+	if (!a->visible)
+		return 1;
+	if (!b->visible)
+		return -1;
 
-    if (a->distance_to_camera == b->distance_to_camera)
-        return 0;
-    else if (a->distance_to_camera < b->distance_to_camera)
-        return -1;
-    else
-        return 1;
+	if (a->distance_to_camera == b->distance_to_camera)
+		return 0;
+	else if (a->distance_to_camera < b->distance_to_camera)
+		return -1;
+	else
+		return 1;
 }
 
 extern inline void kart_draw()
 {
-	qsort(entity_pointers, visible_count, sizeof(entity_t*), compare_distance_to_camera);
+	qsort(entity_pointers, visible_count, sizeof(entity_t *), compare_distance_to_camera);
 
 	for (int i = visible_count - 1; i >= 0; i--)
 	{
-		if (!entity_pointers[i]->visible) {
+		if (!entity_pointers[i]->visible)
+		{
 			continue;
 		}
 
@@ -174,9 +184,67 @@ extern inline void kart_draw()
 	}
 }
 
+int set_entity_render_data(entity_t *entity, vec2 camera_pos, vec2 prigin)
+{
+	entity->visible = 0;
+
+	float distance_to_camera = distance_between(camera_pos, entity->position);
+
+	entity->distance_to_camera = distance_to_camera;
+	if (distance_to_camera > CAMERA_RENDER_DISTANCE)
+	{
+		return 1;
+	}
+
+	float distance_to_player = distance_between(player.moving.entity->position, entity->position);
+	if (distance_to_player > distance_to_camera)
+	{
+		return 2;
+	}
+
+	float angle =
+		fast_atan2_b(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
+	validate_angle(&angle);
+
+	if (angle < -PI_HALF || PI_HALF < angle)
+	{
+		return 3;
+	}
+
+	vec2 offset = {
+		32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
+		16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
+
+	int x = origin.x + offset.x;
+	int y = origin.y + offset.y;
+
+	entity->draw_info.x = x;
+	entity->draw_info.y = y;
+
+	int border = 80; // TODO: why does it crash without this?
+	if (x < border || canvas.size.x - border < x || y < border || canvas.size.y - border < y)
+	{
+		return 4;
+	}
+
+	int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
+	entity->draw_info.scale = scale;
+
+	if (scale < 4)
+	{
+		return 5;
+	}
+
+	entity_pointers[visible_count] = entity;
+	visible_count += 1;
+	entity->visible = 1;
+	return 0;
+}
+
 extern inline void kart_step(vec2int input_vector, int frames)
 {
-	for (int i = 0; i < frames; i++) {
+	for (int i = 0; i < frames; i++)
+	{
 		player_step(&player, input_vector);
 	}
 
@@ -196,65 +264,60 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		entity_t *entity = &entities[i];
-		entity->visible = 0;
+		set_entity_render_data(&entities[i], camera_pos, origin);
+	}
 
-		float distance_to_camera = distance_between(camera_pos, entity->position);
+	for (int i = road_l_start; i < road_l_end; i++)
+	{
+		int res = set_entity_render_data(road_entities_l[i], camera_pos, origin);
+		if (res != 0)
+			road_l_start = i;
+	}
+	int i = road_l_end;
+	while (set_entity_render_data(road_entities_l[i], camera_pos, origin) == 0)
+	{
+		road_l_end++;
+	}
 
-		entity->distance_to_camera = distance_to_camera;
-		if (distance_to_camera > CAMERA_RENDER_DISTANCE) {
-			continue;
-		}
-
-		float distance_to_player = distance_between(player.moving.entity->position, entity->position);
-		if (distance_to_player > distance_to_camera) {
-			continue;
-		}
-
-		float angle =
-				fast_atan2_b(entity->position.y - camera_pos.y, entity->position.x - camera_pos.x) - player.moving.direction;
-		validate_angle(&angle);
-
-		if (angle < -PI_HALF || PI_HALF < angle) {
-			continue;
-		}
-
-		vec2 offset = {
-			32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
-			16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
-
-		int x = origin.x + offset.x;
-		int y = origin.y + offset.y;
-
-		entity->draw_info.x = x;
-		entity->draw_info.y = y;
-
-		int border = 80; // TODO: why does it crash without this?
-		if (x < border || canvas.size.x - border < x || y < border || canvas.size.y - border < y) {
-			continue;
-		}
-
-		int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
-		entity->draw_info.scale = scale;
-
-		if (scale < 4) {
-			continue;
-		}
-
-		entity_pointers[visible_count] = entity;
-		visible_count += 1;
-		entity->visible = 1;
+	for (int i = road_r_start; i < road_r_end; i++)
+	{
+		int res = set_entity_render_data(road_entities_r[i], camera_pos, origin);
+		if (res != 0)
+			road_r_start = i;
+	}
+	int i = road_r_end;
+	while (set_entity_render_data(road_entities_r[i], camera_pos, origin) == 0)
+	{
+		road_r_end++;
 	}
 }
 
 void kart_init()
 {
+	for (int i = 0; i < NUM_ROAD_ENTITIES; i++)
+	{
+		road_entities_l[i].position.x = i * 128;
+		road_entities_l[i].position.y = 0;
+		road_entities_l[i].draw_info.sprite_id = 1;
+		road_entities_l[i].draw_info.x = 0;
+		road_entities_l[i].draw_info.y = 0;
+		road_entities_l[i].draw_info.scale = 100;
+
+		road_entities_r[i].position.x = i * 128;
+		road_entities_r[i].position.y = 512;
+		road_entities_r[i].draw_info.sprite_id = 1;
+		road_entities_r[i].draw_info.x = 0;
+		road_entities_r[i].draw_info.y = 0;
+		road_entities_r[i].draw_info.scale = 100;
+	}
+
 	for (int i = 0; i < NUM_ENTITIES; i++)
 	{
-		entities[i].position.x = i * (128+64);
-		entities[i].position.y = 0;
-		if (i % 2 == 0) {
-			entities[i].position.y += 512;
+		entities[i].position.x = i * (128 + 64);
+		entities[i].position.y = -100;
+		if (i % 2 == 0)
+		{
+			entities[i].position.y += 712;
 		}
 
 		entities[i].draw_info.sprite_id = 1;
@@ -274,7 +337,7 @@ void kart_init()
 
 	vec2int v = {0, 0};
 	kart_step(v, 1);
-	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t*), compare_distance_to_camera);
+	qsort(entity_pointers, NUM_ENTITIES, sizeof(entity_t *), compare_distance_to_camera);
 }
 
 #if DEBUG
