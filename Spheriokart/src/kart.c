@@ -56,6 +56,7 @@ struct entity_t
 	vec2 position;
 	sprite_draw_info draw_info;
 	uint8_t visible;
+	uint8_t disabled;
 	float distance_to_camera;
 } typedef entity_t;
 
@@ -152,6 +153,17 @@ extern inline void player_step(player_t *player, vec2int input_vector, int frame
 	moving->tangential_speed = clamp(moving->tangential_speed, -PLAYER_MAX_TANGENTIAL_SPEED, PLAYER_MAX_TANGENTIAL_SPEED);
 	moving->radial_speed *= PLAYER_RADIAL_DAMPING;
 	moving->radial_speed = clamp(moving->radial_speed, -PLAYER_MAX_RADIAL_SPEED, PLAYER_MAX_RADIAL_SPEED);
+
+	// Animation
+	player->rotation += player->moving.tangential_speed / 50.0;
+	if (player->rotation > 16) { player->rotation -= 16; }
+	if (player->rotation < 0) { player->rotation += 16; }
+
+	if (player->rotation <= 8) {
+		player->moving.entity->draw_info.sprite_id = (int) player->rotation;
+	} else {
+		player->moving.entity->draw_info.sprite_id = 0;
+	}
 }
 
 // Canvas
@@ -278,17 +290,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	visible_count = 0;
 
-	player.rotation += player.moving.radial_speed / 50;
-	if (player.rotation > 16) { player.rotation -= 16; }
-	if (player.rotation < 0) { player.rotation += 16; }
-
-	if (player.rotation <= 8) {
-		player.moving.entity->draw_info.sprite_id = (int) player.rotation;
-	} else {
-		player.moving.entity->draw_info.sprite_id = 0;
-	}
-
-	set_draw_info(player.moving.entity, camera_pos, origin, -2);
+	set_draw_info(player.moving.entity, camera_pos, origin, -5);
 
 	int player_chunk_index = chunk_index(player.moving.entity->position.x, player.moving.entity->position.y);
 
@@ -298,17 +300,16 @@ extern inline void kart_step(vec2int input_vector, int frames)
 		{
 			int ci = player_chunk_index + x + y * WORLD_WIDTH;
 			if (ci < 0 || WORLD_WIDTH * WORLD_WIDTH <= ci)
-			{
 				continue;
-			}
+
 			chunk_t *chunk = &chunks[ci];
 			for (int i = 0; i < chunk->i; i++)
 			{
-				int res = set_draw_info(chunk->entities[i], camera_pos, origin, 5);
+				entity_t *e = chunk->entities[i];
+				if (e->disabled) continue;
+				int res = set_draw_info(e, camera_pos, origin, 10);
 				if (x != 0 && y != 0 && res != 0)
-				{
 					break;
-				}
 			}
 		}
 	}
@@ -317,9 +318,15 @@ extern inline void kart_step(vec2int input_vector, int frames)
 	for (int i = 0; i < chunk->i; i++)
 	{
 		entity_t *e = chunk->entities[i];
+		if (e->disabled) continue;
+
 		if (distance_between(e->position, player.moving.entity->position) < 96)
 		{
-			player.moving.tangential_speed = 0;
+			if (e->draw_info.sprite_id == 0) {
+				e->disabled = 1;
+			} else {
+				player.moving.tangential_speed = 0;
+			}
 			break;
 		}
 	}
@@ -337,6 +344,11 @@ void kart_init()
 		{
 			r = R * 0.92;
 		}
+		if (i % 10 == 0)
+		{
+			r = R * 0.96;
+			entities[i].draw_info.sprite_id = 0;
+		}
 		entities[i].position.x = -R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
 	}
@@ -347,6 +359,11 @@ void kart_init()
 		if (i % 2 == 0)
 		{
 			r = R * 0.92;
+		}
+		if (i % 10 == 0)
+		{
+			r = R * 0.96;
+			entities[i].draw_info.sprite_id = 0;
 		}
 		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
@@ -364,6 +381,7 @@ void kart_init()
 		float y = entities[i].position.y;
 		entities[i].draw_info.sprite_id = 8 + (rand() % 3);
 		entities[i].visible = 0;
+		entities[i].disabled = 0;
 		chunk_t *chunk = &chunks[chunk_index(x, y)];
 
 		vec2 origin = {0, 0};
@@ -381,6 +399,7 @@ void kart_init()
 	player.moving.entity->draw_info.sprite_id = 0;
 	player.moving.entity->position.x = 0;
 	player.moving.entity->position.y = 0;
+	player.moving.entity->disabled = 0;
 	player.moving.direction = PI / 3;
 	player.rotation = 0;
 }
