@@ -125,7 +125,7 @@ int chunk_index(float x, float y)
 #define PLAYER_RADIAL_DAMPING 0.94
 #define PLAYER_TANGENTIAL_DAMPING 0.96
 #define PLAYER_JUMP_UP 24
-#define PLAYER_JUMP_FORWARD 0.3
+#define PLAYER_JUMP_FORWARD 40
 #define PLAYER_GRAVITY 3
 
 struct player_t
@@ -214,7 +214,7 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 450
+#define NUM_ENTITIES 600
 #define CAMERA_PLAYER_DISTANCE 256
 #define CAMERA_RENDER_DISTANCE 8096
 
@@ -232,7 +232,12 @@ int timer = 0;
 void jump() {
 	if (player.moving.z == 0) {
 		player.moving.z_speed = PLAYER_JUMP_UP;
-		player.moving.tangential_speed += PLAYER_JUMP_FORWARD;
+		if (0 < player.moving.tangential_speed && player.moving.tangential_speed < PLAYER_JUMP_FORWARD) {
+			player.moving.tangential_speed = PLAYER_JUMP_FORWARD;
+		}
+		if (-PLAYER_JUMP_FORWARD < player.moving.tangential_speed && player.moving.tangential_speed < 0) {
+			player.moving.tangential_speed = -PLAYER_JUMP_FORWARD;
+		}
 	}
 }
 
