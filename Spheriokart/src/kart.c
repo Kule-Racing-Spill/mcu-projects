@@ -245,6 +245,25 @@ sprite_draw_info overlay_coin_digit1 = {
 	.y = 20,
 	.scale = 64,
 };
+
+sprite_draw_info overlay_speedometer = {
+	.sprite_id = 20,
+	.x = 20,
+	.y = 348,
+	.scale = 32,
+};
+sprite_draw_info overlay_speed_digit0 = {
+	.sprite_id = 32,
+	.x = 52,
+	.y = 348,
+	.scale = 32,
+};
+sprite_draw_info overlay_speed_digit1 = {
+	.sprite_id = 32,
+	.x = 80,
+	.y = 348,
+	.scale = 32,
+};
 void draw_overlay()
 {
 	overlay_coin_digit0.sprite_id = 32 + coin_count / 10;
@@ -252,6 +271,12 @@ void draw_overlay()
 	spi_draw_sprite(overlay_coin);
 	spi_draw_sprite(overlay_coin_digit0);
 	spi_draw_sprite(overlay_coin_digit1);
+
+	overlay_speed_digit0.sprite_id = 32 + player.moving.tangential_speed / 10;
+	overlay_speed_digit1.sprite_id = 32 + player.moving.tangential_speed % 10;
+	spi_draw_sprite(overlay_speedometer);
+	spi_draw_sprite(overlay_speed_digit0);
+	spi_draw_sprite(overlay_speed_digit1);
 }
 
 extern inline void kart_draw()
