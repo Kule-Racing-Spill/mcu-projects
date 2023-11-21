@@ -15,7 +15,7 @@
 #define LED0 2
 #define LED1 3
 
-#define PD5 5
+// #define PD5 5
 
 #if DEV
 #define FPGA_INPUT_PORT 2
@@ -84,11 +84,12 @@ int main()
 
 	int fpga_reset = 0;
 	int fpga_ready = 0;
+	//GPIO_PinOutClear(gpioPortE, 13);
 
 	while (1)
 	{
 		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
-		int pd5 = GPIO_PinOutGet(gpioPortD, PD5);
+		int pe13 = GPIO_PinOutGet(gpioPortE, 13);
 
 		if(fpga_reset && fpga_ready){
 			spi_send_sprites();
