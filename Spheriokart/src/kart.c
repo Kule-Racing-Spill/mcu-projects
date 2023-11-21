@@ -80,16 +80,15 @@ struct chunk_t
 
 chunk_t chunks[WORLD_WIDTH * WORLD_WIDTH];
 
-static bool is_coin(entity_t* e)
+static bool is_coin(entity_t *e)
 {
 	return e->draw_info.sprite_id >= 16 && e->draw_info.sprite_id < 20;
 }
 
-static bool is_bush(entity_t* e)
+static bool is_bush(entity_t *e)
 {
 	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
 }
-
 
 int chunk_index(float x, float y)
 {
@@ -213,6 +212,7 @@ entity_t entities[NUM_ENTITIES];
 entity_t *entity_draw_order[NUM_ENTITIES];
 int visible_count = 0;
 int coin_rotation = 0;
+int coin_count = 0;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
@@ -225,6 +225,33 @@ int compare_distance_to_camera(const void *pa, const void *pb)
 		return -1;
 	else
 		return 1;
+}
+
+sprite_draw_info overlay_coin = {
+	.sprite_id = 16,
+	.x = 20,
+	.y = 20,
+	.scale = 64,
+};
+sprite_draw_info overlay_coin_digit0 = {
+	.sprite_id = 32,
+	.x = 8,
+	.y = 20,
+	.scale = 64,
+};
+sprite_draw_info overlay_coin_digit1 = {
+	.sprite_id = 32,
+	.x = 134,
+	.y = 20,
+	.scale = 64,
+};
+void draw_overlay()
+{
+	overlay_coin_digit0.sprite_id = 32 + coin_count / 10;
+	overlay_coin_digit1.sprite_id = 32 + coin_count % 10;
+	spi_draw_sprite(overlay_coin);
+	spi_draw_sprite(overlay_coin_digit0);
+	spi_draw_sprite(overlay_coin_digit1);
 }
 
 extern inline void kart_draw()
@@ -240,6 +267,8 @@ extern inline void kart_draw()
 
 		spi_draw_sprite(entity_draw_order[i]->draw_info);
 	}
+
+	draw_overlay();
 }
 
 int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offset)

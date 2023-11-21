@@ -20,8 +20,8 @@ colors = [
 ]
 
 
-for i in range(4):
-    filename = f"coin{i+1}"
+for i in range(10):
+    filename = f"number{i+1}"
 
     img = Image.open(f"{filename}.png").convert("RGB")
     pixels = img.load()
