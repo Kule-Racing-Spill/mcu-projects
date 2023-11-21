@@ -15,13 +15,13 @@ colors = [
 "19e16d",
 "bad3a9",
 "98eafe",
-"a1c9fd",
+"f4ff00",
 "101010",
 ]
 
 
-for i in range(8):
-    filename = f"sphere{i+1}"
+for i in range(4):
+    filename = f"coin{i+1}"
 
     img = Image.open(f"{filename}.png").convert("RGB")
     pixels = img.load()
