@@ -28,12 +28,12 @@
 		<link>
 			<name>Drivers</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/Drivers</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/Drivers</locationURI>
 		</link>
 		<link>
 			<name>emusb</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/emusb</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/emusb</locationURI>
 		</link>
 		<link>
 			<name>emlib/em_assert.c</name>
@@ -103,12 +103,12 @@
 		<link>
 			<name>src/button.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/button.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/button.c</locationURI>
 		</link>
 		<link>
 			<name>src/button.h</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/button.h</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/button.h</locationURI>
 		</link>
 		<link>
 			<name>src/fast_atan2.c</name>
@@ -131,59 +131,65 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_sin.c</locationURI>
 		</link>
 		<link>
+			<name>src/fast_sin_f.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/fast_sin_f.c</locationURI>
+		</link>
+		<link>
 			<name>src/kart.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/kart.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/kart.c</locationURI>
 		</link>
 		<link>
 			<name>src/kart.h</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/kart.h</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/kart.h</locationURI>
 		</link>
 		<link>
 			<name>src/lib</name>
 			<type>2</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/lib</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/lib</locationURI>
 		</link>
 		<link>
 			<name>src/main.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/main.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/main.c</locationURI>
 		</link>
 		<link>
 			<name>src/printing.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/printing.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/printing.c</locationURI>
 		</link>
 		<link>
 			<name>src/printing.h</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/printing.h</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/printing.h</locationURI>
 		</link>
 		<link>
 			<name>src/spi.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/spi.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/spi.c</locationURI>
 		</link>
 		<link>
 			<name>src/spi.h</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/spi.h</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/spi.h</locationURI>
 		</link>
 		<link>
 			<name>src/trackball.c</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/trackball.c</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/trackball.c</locationURI>
 		</link>
 		<link>
 			<name>src/trackball.h</name>
 			<type>1</type>
-			<location>/Users/oddis/prosjekter/skole/datamaskinprosjekt/spheriokart/mcu-projects/Spheriokart/src/trackball.h</location>
+			<locationURI>PARENT-1-PROJECT_LOC/Spheriokart/src/trackball.h</locationURI>
 		</link>
 		<link>
 			<name>CMSIS/EFM32GG/startup_gcc_efm32gg.s</name>
 			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/Device/SiliconLabs/EFM32GG/Source/GCC/startup_efm32gg.S</locationURI>
+			<locationURI>
+				STUDIO_SDK_LOC/platform/Device/SiliconLabs/EFM32GG/Source/GCC/startup_efm32gg.S</locationURI>
 		</link>
 		<link>
 			<name>CMSIS/EFM32GG/system_efm32gg.c</name>
