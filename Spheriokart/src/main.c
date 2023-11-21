@@ -5,6 +5,7 @@
 #include "spi.h"
 #include "em_device.h"
 #include "button.h"
+#include "clock_efm32gg.h"
 
 #define DEBUG 0
 #define DEV 0
@@ -61,6 +62,7 @@ void gpio_init(void)
 
 int main()
 {
+	(void) SystemCoreClockSet(CLOCK_HFXO,1,1);
 #if DEBUG
 	SWO_SetupForPrint(); /* For adding printing to console in simplicity studio debugger */
 #endif
@@ -94,11 +96,11 @@ int main()
 		fpga_reset = GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 		/* BUTTONS */
 
-		b = b | Button_ReadReleased();
+		b = Button_Read();
 		/*GPIO_PinOutClear(LED_PORT, LED0);
 		GPIO_PinOutClear(LED_PORT, LED1);*/
 
-		if (b & BUTTON1)
+		if ((b & BUTTON1) || (b & BUTTON4) || (b & BUTTON3))
 		{
 			input_vector.x = -1;
 			// GPIO_PinOutSet(LED_PORT, LED0);

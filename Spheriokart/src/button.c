@@ -38,6 +38,18 @@ void Button_Init(uint32_t buttons) {
         GPIOA->MODEH |= GPIO_P_MODEL_MODE2_INPUT;       // Set bits
         inputpins |= BUTTON2;
     }
+
+    if ( buttons&BUTTON3) {
+		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE3_MASK;      // Clear bits
+		GPIOA->MODEL |= GPIO_P_MODEL_MODE3_INPUT;       // Set bits
+		inputpins |= BUTTON3;
+    }
+
+	if ( buttons&BUTTON4) {
+		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE4_MASK;      // Clear bits
+		GPIOA->MODEL |= GPIO_P_MODEL_MODE4_INPUT;       // Set bits
+		inputpins |= BUTTON4;
+	}
     // First read
     lastread = GPIOA->DIN;
 
