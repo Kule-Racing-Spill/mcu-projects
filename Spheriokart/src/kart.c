@@ -255,50 +255,50 @@ sprite_draw_info overlay_speedometer = {
 };
 sprite_draw_info overlay_speed_digit0 = {
 	.sprite_id = 32,
-	.x = overlay_speedometer.x + 32,
+	.x = 20 + 32,
 	.y = 428,
 	.scale = 32,
 };
 sprite_draw_info overlay_speed_digit1 = {
 	.sprite_id = 32,
-	.x = overlay_speed_digit0.x + 28,
+	.x = 20 + 32 + 28,
 	.y = 428,
 	.scale = 32,
 };
 
 sprite_draw_info overlay_stopwatch = {
 	.sprite_id = 21,
-	.x = 582,
+	.x = 550,
 	.y = 20,
 	.scale = 48,
 };
 sprite_draw_info overlay_timer_min_digit0 = {
 	.sprite_id = 32,
-	.x = overlay_stopwatch.x + 44,
+	.x = 550 + 44,
 	.y = 20,
 	.scale = 48,
 };
 sprite_draw_info overlay_timer_min_digit1 = {
 	.sprite_id = 32,
-	.x = overlay_timer_min_digit0.x + 40,
+	.x = 550 + 44 + 40,
 	.y = 20,
 	.scale = 48,
 };
 sprite_draw_info overlay_timer_colon = {
 	.sprite_id = 42,
-	.x = overlay_timer_min_digit1.x + 32,
+	.x = 550 + 44 + 40 + 32,
 	.y = 20,
 	.scale = 48,
 };
 sprite_draw_info overlay_timer_sec_digit0 = {
 	.sprite_id = 32,
-	.x = overlay_timer_colon.x + 32,
+	.x = 550 + 44 + 40 + 32 + 32,
 	.y = 20,
 	.scale = 48,
 };
 sprite_draw_info overlay_timer_sec_digit1 = {
 	.sprite_id = 32,
-	.x = overlay_timer_sec_digit0.x + 40,
+	.x = 550 + 44 + 40 + 32 + 32 + 40,
 	.y = 20,
 	.scale = 48,
 };
@@ -322,7 +322,8 @@ void draw_overlay()
 	overlay_timer_min_digit0.sprite_id = 32 + minutes / 10;
 	overlay_timer_min_digit1.sprite_id = 32 + minutes % 10;
 	overlay_timer_sec_digit0.sprite_id = 32 + (seconds % 60) / 10;
-	overlay_timer_sec_digit1.sprite_id = 32 + seconds % 60 spi_draw_sprite(overlay_stopwatch);
+	overlay_timer_sec_digit1.sprite_id = 32 + seconds % 10;
+	spi_draw_sprite(overlay_stopwatch);
 	spi_draw_sprite(overlay_timer_min_digit0);
 	spi_draw_sprite(overlay_timer_min_digit1);
 	spi_draw_sprite(overlay_timer_colon);
