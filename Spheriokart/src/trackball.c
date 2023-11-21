@@ -153,7 +153,7 @@ static void CheckPadSwipe(vec2int *coords)
     x = usbData[2];
 
     x/=3; // Sensitivity decrease for x-axis
-    y*=2;
+
 
     coords->x = x;
     coords->y = y;

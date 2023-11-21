@@ -20,6 +20,7 @@
 #else
 #define FPGA_INPUT_PORT gpioPortE
 #define FPGA_INPUT_PIN 15
+#define FPGA_READY_PIN 14
 #endif
 
 #if DEBUG
@@ -45,6 +46,7 @@ void gpio_init(void)
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
 	GPIO_PinModeSet(FPGA_INPUT_PORT, FPGA_INPUT_PIN, gpioModeInput, 0);
+	GPIO_PinModeSet(FPGA_INPUT_PORT, FPGA_READY_PIN, gpioModeInput, 0);
 	GPIO_ExtIntConfig(FPGA_INPUT_PORT, FPGA_INPUT_PIN, FPGA_INPUT_PIN, false, true, true);
 
 	NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
@@ -69,18 +71,24 @@ int main()
 	/* Button stuff */
 	Button_Init(BUTTON1 | BUTTON2);
 	uint32_t b;
-
 	input_vector.x = 0;
 	input_vector.y = 0;
-
 	vec2int prev_input_vector = {
 			.x = 0,
 			.y = 0
 	};
 
+	int fpga_reset = 0;
+	int fpga_ready = 0;
 	while (1)
 	{
+		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 
+		if(fpga_reset && fpga_ready){
+			spi_send_sprites();
+		}
+
+		fpga_reset = GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 		/* BUTTONS */
 
 		b = b | Button_ReadReleased();
@@ -138,4 +146,5 @@ int main()
 			b = 0;
 		}
 	}
+	//}
 }
