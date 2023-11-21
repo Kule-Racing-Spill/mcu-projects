@@ -235,7 +235,7 @@ sprite_draw_info overlay_coin = {
 };
 sprite_draw_info overlay_coin_digit0 = {
 	.sprite_id = 32,
-	.x = 8,
+	.x = 84,
 	.y = 20,
 	.scale = 64,
 };
