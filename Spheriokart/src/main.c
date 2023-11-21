@@ -71,7 +71,7 @@ int main()
 	spi_send_sprites();
 
 	/* Button stuff */
-	Button_Init(BUTTON1 | BUTTON2);
+	Button_Init(BUTTON1 | BUTTON2 | BUTTON3 | BUTTON4);
 	uint32_t b;
 	input_vector.x = 0;
 	input_vector.y = 0;
@@ -82,6 +82,7 @@ int main()
 
 	int fpga_reset = 0;
 	int fpga_ready = 0;
+
 	while (1)
 	{
 		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
@@ -94,13 +95,13 @@ int main()
 		/* BUTTONS */
 
 		b = b | Button_ReadReleased();
-		GPIO_PinOutClear(LED_PORT, LED0);
-		GPIO_PinOutClear(LED_PORT, LED1);
+		/*GPIO_PinOutClear(LED_PORT, LED0);
+		GPIO_PinOutClear(LED_PORT, LED1);*/
 
 		if (b & BUTTON1)
 		{
 			input_vector.x = -1;
-			GPIO_PinOutSet(LED_PORT, LED0);
+			// GPIO_PinOutSet(LED_PORT, LED0);
 #if DEBUG
 			printf("Button1 pressed!\n");
 #endif
@@ -108,7 +109,7 @@ int main()
 		if (b & BUTTON2)
 		{
 			input_vector.x = 1;
-			GPIO_PinOutSet(LED_PORT, LED1);
+			// GPIO_PinOutSet(LED_PORT, LED1);
 #if DEBUG
 			printf("Button2 pressed!\n");
 #endif
@@ -148,5 +149,4 @@ int main()
 			b = 0;
 		}
 	}
-	//}
 }

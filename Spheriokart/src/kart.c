@@ -278,7 +278,10 @@ extern inline void kart_step(vec2int input_vector, int frames)
 	visible_count = 0;
 
 
-	player.moving.entity->draw_info.sprite_id += player.moving.radial_speed / 20;
+	player.moving.entity->draw_info.sprite_id += player.moving.tangential_speed / 20;
+	if(player.moving.entity->draw_info.sprite_id < 0){
+		player.moving.entity->draw_info.sprite_id = 7;
+	}
 	player.moving.entity->draw_info.sprite_id %= 8;
 
 	set_draw_info(player.moving.entity, camera_pos, origin, -2);
