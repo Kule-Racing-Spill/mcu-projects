@@ -114,6 +114,7 @@ int chunk_index(float x, float y)
 struct player_t
 {
 	moving_entity_t moving;
+	float rotation;
 } typedef player_t;
 
 // Declarations
@@ -277,9 +278,15 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	visible_count = 0;
 
+	player.rotation += player.moving.radial_speed / 50;
+	if (player.rotation > 16) { player.rotation -= 16; }
+	if (player.rotation < 0) { player.rotation += 16; }
 
-	player.moving.entity->draw_info.sprite_id += player.moving.radial_speed / 20;
-	player.moving.entity->draw_info.sprite_id %= 8;
+	if (player.rotation <= 8) {
+		player.moving.entity->draw_info.sprite_id = (int) player.rotation;
+	} else {
+		player.moving.entity->draw_info.sprite_id = 0;
+	}
 
 	set_draw_info(player.moving.entity, camera_pos, origin, -2);
 
@@ -375,6 +382,7 @@ void kart_init()
 	player.moving.entity->position.x = 0;
 	player.moving.entity->position.y = 0;
 	player.moving.direction = PI / 3;
+	player.rotation = 0;
 }
 
 #if DEBUG
