@@ -1,7 +1,6 @@
 #include "lib/spidrv.h"
 #include "spi.h"
-
-#define DEBUG 0
+#include "config.h"
 
 SPIDRV_HandleData_t handleData;
 SPIDRV_Handle_t handle = &handleData;

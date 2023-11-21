@@ -5,22 +5,18 @@
 #include "spi.h"
 #include "em_device.h"
 #include "button.h"
-#include "clock_efm32gg.h"
-
-#define DEBUG 0
-#define DEV 0
-#define TRACKBALL 1
+#include "config.h"
 
 #define LED_PORT gpioPortE
 #define LED0 2
 #define LED1 3
-
 #define PD5 5
 
 #if DEV
 #define FPGA_INPUT_PORT 2
 #define FPGA_INPUT_PIN 4
 #else
+#include "clock_efm32gg.h"
 #define FPGA_INPUT_PORT gpioPortE
 #define FPGA_INPUT_PIN 15
 #define FPGA_READY_PIN 14
@@ -49,7 +45,10 @@ void gpio_init(void)
 	CMU_ClockEnable(cmuClock_GPIO, true);
 
 	GPIO_PinModeSet(FPGA_INPUT_PORT, FPGA_INPUT_PIN, gpioModeInput, 0);
+#if !DEV
 	GPIO_PinModeSet(FPGA_INPUT_PORT, FPGA_READY_PIN, gpioModeInput, 0);
+#endif
+
 	GPIO_ExtIntConfig(FPGA_INPUT_PORT, FPGA_INPUT_PIN, FPGA_INPUT_PIN, false, true, true);
 
 	NVIC_ClearPendingIRQ(GPIO_EVEN_IRQn);
@@ -62,7 +61,10 @@ void gpio_init(void)
 
 int main()
 {
+#if !DEV
 	(void) SystemCoreClockSet(CLOCK_HFXO,1,1);
+#endif
+
 #if DEBUG
 	SWO_SetupForPrint(); /* For adding printing to console in simplicity studio debugger */
 #endif
@@ -87,6 +89,7 @@ int main()
 
 	while (1)
 	{
+#if !DEV
 		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 		int pd5 = GPIO_PinOutGet(gpioPortD, PD5);
 
@@ -96,6 +99,7 @@ int main()
 
 		fpga_reset = GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 		/* BUTTONS */
+#endif
 
 		b = b | Button_Read();
 
@@ -107,9 +111,12 @@ int main()
 #endif
 		}
 		if(b & BUTTON3){}
+
+#if !DEV
 		if(b & BUTTON4){
 			NVIC_SystemReset(); // Reset MCU on press
 		}
+
 		if (b & BUTTON2)
 		{
 			GPIO_PinOutSet(gpioPortE, 13); // Reprogram FPGA
@@ -119,7 +126,7 @@ int main()
 		}else{
 			GPIO_PinOutClear(gpioPortE, 13);
 		}
-
+#endif
 		/* TRACKBALL*/
 
 #if TRACKBALL

@@ -12,7 +12,12 @@
  * #include "efm32gg995f1024.h"
  */
 #include "em_device.h"
+#include "config.h"
+
+#if !DEV
 #include "efm32gg332f1024.h"
+#endif
+
 #include "button.h"
 
 
