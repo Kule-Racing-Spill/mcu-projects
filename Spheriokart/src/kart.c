@@ -120,7 +120,7 @@ int chunk_index(float x, float y)
 #define PLAYER_RADIAL_ACC 0.0003
 #define PLAYER_MAX_RADIAL_SPEED 0.02
 #define PLAYER_MAX_TANGENTIAL_SPEED 100
-#define PLAYER_RADIAL_DAMPING 0.9
+#define PLAYER_RADIAL_DAMPING 0.94
 #define PLAYER_TANGENTIAL_DAMPING 0.96
 
 struct player_t
@@ -231,37 +231,37 @@ sprite_draw_info overlay_coin = {
 	.sprite_id = 16,
 	.x = 20,
 	.y = 20,
-	.scale = 64,
+	.scale = 48,
 };
 sprite_draw_info overlay_coin_digit0 = {
 	.sprite_id = 32,
 	.x = 84,
 	.y = 20,
-	.scale = 64,
+	.scale = 48,
 };
 sprite_draw_info overlay_coin_digit1 = {
 	.sprite_id = 32,
 	.x = 134,
 	.y = 20,
-	.scale = 64,
+	.scale = 48,
 };
 
 sprite_draw_info overlay_speedometer = {
 	.sprite_id = 20,
 	.x = 20,
-	.y = 348,
+	.y = 428,
 	.scale = 32,
 };
 sprite_draw_info overlay_speed_digit0 = {
 	.sprite_id = 32,
 	.x = 52,
-	.y = 348,
+	.y = 428,
 	.scale = 32,
 };
 sprite_draw_info overlay_speed_digit1 = {
 	.sprite_id = 32,
 	.x = 80,
-	.y = 348,
+	.y = 428,
 	.scale = 32,
 };
 void draw_overlay()
@@ -272,8 +272,10 @@ void draw_overlay()
 	spi_draw_sprite(overlay_coin_digit0);
 	spi_draw_sprite(overlay_coin_digit1);
 
-	overlay_speed_digit0.sprite_id = 32 + player.moving.tangential_speed / 10;
-	overlay_speed_digit1.sprite_id = 32 + player.moving.tangential_speed % 10;
+	int speed = abs(player.moving.tangential_speed / 5);
+
+	overlay_speed_digit0.sprite_id = 32 + speed / 10;
+	overlay_speed_digit1.sprite_id = 32 + speed % 10;
 	spi_draw_sprite(overlay_speedometer);
 	spi_draw_sprite(overlay_speed_digit0);
 	spi_draw_sprite(overlay_speed_digit1);
