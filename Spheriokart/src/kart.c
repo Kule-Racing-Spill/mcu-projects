@@ -156,12 +156,21 @@ extern inline void player_step(player_t *player, vec2int input_vector, int frame
 
 	// Animation
 	player->rotation += player->moving.tangential_speed / 50.0;
-	if (player->rotation > 16) { player->rotation -= 16; }
-	if (player->rotation < 0) { player->rotation += 16; }
+	if (player->rotation > 16)
+	{
+		player->rotation -= 16;
+	}
+	if (player->rotation < 0)
+	{
+		player->rotation += 16;
+	}
 
-	if (player->rotation <= 8) {
-		player->moving.entity->draw_info.sprite_id = (int) player->rotation;
-	} else {
+	if (player->rotation <= 8)
+	{
+		player->moving.entity->draw_info.sprite_id = (int)player->rotation;
+	}
+	else
+	{
 		player->moving.entity->draw_info.sprite_id = 0;
 	}
 }
@@ -191,6 +200,7 @@ player_t player;
 entity_t entities[NUM_ENTITIES];
 entity_t *entity_draw_order[NUM_ENTITIES];
 int visible_count = 0;
+int coin_rotation = 0;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
@@ -272,9 +282,20 @@ int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offs
 	return 0;
 }
 
+inline bool is_coin(*entity_t e)
+{
+	return e->draw_info.sprite_id >= 16 && e->draw_info.sprite_id < 20;
+}
+inline bool is_bush(*entity_t e)
+{
+	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
+}
+
 extern inline void kart_step(vec2int input_vector, int frames)
 {
 	player_step(&player, input_vector, frames);
+
+	coin_rotation = (coin_rotation + 1) % 16;
 
 #if DEBUG
 	WritePosToScreen(&player);
@@ -294,6 +315,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	int player_chunk_index = chunk_index(player.moving.entity->position.x, player.moving.entity->position.y);
 
+	// Draw sprites
 	for (int x = -3; x <= 3; x++)
 	{
 		for (int y = -3; y <= 3; y++)
@@ -306,7 +328,10 @@ extern inline void kart_step(vec2int input_vector, int frames)
 			for (int i = 0; i < chunk->i; i++)
 			{
 				entity_t *e = chunk->entities[i];
-				if (e->disabled) continue;
+				if (e->disabled)
+					continue;
+				if (is_coin(e))
+					e->draw_info.sprite_id = 16 + (coin_rotation >> 2);
 				int res = set_draw_info(e, camera_pos, origin, 10);
 				if (x != 0 && y != 0 && res != 0)
 					break;
@@ -314,17 +339,22 @@ extern inline void kart_step(vec2int input_vector, int frames)
 		}
 	}
 
+	// Collissions
 	chunk_t *chunk = &chunks[player_chunk_index];
 	for (int i = 0; i < chunk->i; i++)
 	{
 		entity_t *e = chunk->entities[i];
-		if (e->disabled) continue;
+		if (e->disabled)
+			continue;
 
 		if (distance_between(e->position, player.moving.entity->position) < 96)
 		{
-			if (e->draw_info.sprite_id == 0) {
+			if (is_coin(e))
+			{
 				e->disabled = 1;
-			} else {
+			}
+			else if (is_bush(e))
+			{
 				player.moving.tangential_speed = 0;
 			}
 			break;
