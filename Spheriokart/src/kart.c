@@ -71,6 +71,7 @@ struct moving_entity_t
 #define CHUNK_WIDTH 1024
 #define WORLD_WIDTH 24
 #define MAX_ENTITIES_PER_CHUNK 16
+
 struct chunk_t
 {
 	int i;
@@ -78,6 +79,17 @@ struct chunk_t
 } typedef chunk_t;
 
 chunk_t chunks[WORLD_WIDTH * WORLD_WIDTH];
+
+static bool is_coin(entity_t* e)
+{
+	return e->draw_info.sprite_id >= 16 && e->draw_info.sprite_id < 20;
+}
+
+static bool is_bush(entity_t* e)
+{
+	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
+}
+
 
 int chunk_index(float x, float y)
 {
@@ -282,15 +294,6 @@ int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offs
 	return 0;
 }
 
-inline bool is_coin(*entity_t e)
-{
-	return e->draw_info.sprite_id >= 16 && e->draw_info.sprite_id < 20;
-}
-inline bool is_bush(*entity_t e)
-{
-	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
-}
-
 extern inline void kart_step(vec2int input_vector, int frames)
 {
 	player_step(&player, input_vector, frames);
@@ -378,7 +381,7 @@ void kart_init()
 		if (i % 10 == 0)
 		{
 			r = R * 0.96;
-			entities[i].draw_info.sprite_id = 0;
+			entities[i].draw_info.sprite_id = 16;
 		}
 		entities[i].position.x = -R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
@@ -395,7 +398,7 @@ void kart_init()
 		if (i % 10 == 0)
 		{
 			r = R * 0.96;
-			entities[i].draw_info.sprite_id = 0;
+			entities[i].draw_info.sprite_id = 16;
 		}
 		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);

@@ -28,26 +28,26 @@ void Button_Init(uint32_t buttons) {
     CMU->HFPERCLKEN0 |= CMU_HFPERCLKEN0_GPIO;           // Enable HFPERCKL for GPIO
 
     if ( buttons&BUTTON1 ) {
-        GPIOA->MODEH &= ~_GPIO_P_MODEL_MODE1_MASK;      // Clear bits
-        GPIOA->MODEH |= GPIO_P_MODEL_MODE1_INPUT;       // Set bits
+        GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE0_MASK;      // Clear bits
+        GPIOA->MODEL |= GPIO_P_MODEL_MODE0_INPUT;       // Set bits
         inputpins |= BUTTON1;
     }
 
     if ( buttons&BUTTON2 ) {
-        GPIOA->MODEH &= ~_GPIO_P_MODEL_MODE2_MASK;      // Clear bits
-        GPIOA->MODEH |= GPIO_P_MODEL_MODE2_INPUT;       // Set bits
+        GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE1_MASK;      // Clear bits
+        GPIOA->MODEL |= GPIO_P_MODEL_MODE1_INPUT;       // Set bits
         inputpins |= BUTTON2;
     }
 
     if ( buttons&BUTTON3) {
-		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE3_MASK;      // Clear bits
-		GPIOA->MODEL |= GPIO_P_MODEL_MODE3_INPUT;       // Set bits
+		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE2_MASK;      // Clear bits
+		GPIOA->MODEL |= GPIO_P_MODEL_MODE2_INPUT;       // Set bits
 		inputpins |= BUTTON3;
     }
 
 	if ( buttons&BUTTON4) {
-		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE4_MASK;      // Clear bits
-		GPIOA->MODEL |= GPIO_P_MODEL_MODE4_INPUT;       // Set bits
+		GPIOA->MODEL &= ~_GPIO_P_MODEL_MODE3_MASK;      // Clear bits
+		GPIOA->MODEL |= GPIO_P_MODEL_MODE3_INPUT;       // Set bits
 		inputpins |= BUTTON4;
 	}
     // First read

@@ -88,6 +88,7 @@ int main()
 	while (1)
 	{
 		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
+		int pd5 = GPIO_PinOutGet(gpioPortD, PD5);
 
 		if(fpga_reset && fpga_ready){
 			spi_send_sprites();
@@ -96,25 +97,27 @@ int main()
 		fpga_reset = GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
 		/* BUTTONS */
 
-		b = Button_Read();
-		/*GPIO_PinOutClear(LED_PORT, LED0);
-		GPIO_PinOutClear(LED_PORT, LED1);*/
+		b = b | Button_Read();
 
-		if ((b & BUTTON1) || (b & BUTTON4) || (b & BUTTON3))
+		if (b & BUTTON1)
 		{
-			input_vector.x = -1;
-			// GPIO_PinOutSet(LED_PORT, LED0);
+			input_vector.y = +100; // BOOST
 #if DEBUG
 			printf("Button1 pressed!\n");
 #endif
 		}
+		if(b & BUTTON3){}
+		if(b & BUTTON4){
+			NVIC_SystemReset(); // Reset MCU on press
+		}
 		if (b & BUTTON2)
 		{
-			input_vector.x = 1;
-			// GPIO_PinOutSet(LED_PORT, LED1);
+			GPIO_PinOutSet(gpioPortE, 13); // Reprogram FPGA
 #if DEBUG
 			printf("Button2 pressed!\n");
 #endif
+		}else{
+			GPIO_PinOutClear(gpioPortE, 13);
 		}
 
 		/* TRACKBALL*/
