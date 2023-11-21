@@ -202,7 +202,7 @@ extern inline void kart_draw()
 	}
 }
 
-int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin) {
+int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offset) {
 	entity->visible = 0;
 
 	float distance_to_camera = distance_between(camera_pos, entity->position);
@@ -239,7 +239,7 @@ int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin) {
 		return 1;
 	}
 
-	int scale = round(clamp(10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
+	int scale = round(clamp(scale_offset + 10000 / fast_pow(distance_to_camera, 0.8), 1, 256));
 	entity->draw_info.scale = scale;
 
 	entity_draw_order[visible_count] = entity;
@@ -267,7 +267,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	visible_count = 0;
 
-	set_draw_info(player.moving.entity, camera_pos, origin);
+	set_draw_info(player.moving.entity, camera_pos, origin, -2);
 
 	int player_chunk_index = chunk_index(player.moving.entity->position.x, player.moving.entity->position.y);
 
@@ -280,7 +280,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 			chunk_t *chunk = &chunks[ci];
 			for (int i = 0; i < chunk->i; i++)
 			{
-				int res = set_draw_info(chunk->entities[i], camera_pos, origin);
+				int res = set_draw_info(chunk->entities[i], camera_pos, origin, 5);
 				if (x != 0 && y != 0 && res != 0) {
 					break;
 				}
