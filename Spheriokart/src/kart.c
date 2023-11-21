@@ -156,8 +156,8 @@ extern inline void player_step(player_t *player, vec2int input_vector, int frame
 	validate_angle(&(moving->direction));
 
 	// Movement
-	entity->position.x += fast_sin(PI_HALF - moving->direction) * moving->tangential_speed;
-	entity->position.y += fast_sin(moving->direction) * moving->tangential_speed;
+	entity->position.x += fast_sin_f(PI_HALF - moving->direction) * moving->tangential_speed;
+	entity->position.y += fast_sin_f(moving->direction) * moving->tangential_speed;
 
 	// Clamp
 	moving->tangential_speed *= PLAYER_TANGENTIAL_DAMPING;
@@ -361,8 +361,8 @@ extern inline void kart_step(vec2int input_vector, int frames)
 #endif
 
 	vec2 camera_pos = {
-		player.moving.entity->position.x - CAMERA_PLAYER_DISTANCE * fast_sin(PI_HALF - player.moving.direction),
-		player.moving.entity->position.y - CAMERA_PLAYER_DISTANCE * fast_sin(player.moving.direction)};
+		player.moving.entity->position.x - CAMERA_PLAYER_DISTANCE * fast_sin_f(PI_HALF - player.moving.direction),
+		player.moving.entity->position.y - CAMERA_PLAYER_DISTANCE * fast_sin_f(player.moving.direction)};
 
 	vec2 origin = {
 		canvas.size.x / 2 - SPRITE_HALF,
