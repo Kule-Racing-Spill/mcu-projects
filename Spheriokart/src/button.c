@@ -16,7 +16,7 @@
 #include "button.h"
 
 
-static GPIO_P_TypeDef * const GPIOA = &(GPIO->P[gpioPortA]);    // GPIOA
+static GPIO_P_TypeDef * const GPIOA = &(GPIO->P[0]);    // GPIOA
 
 static uint32_t lastread = 0;
 static uint32_t inputpins = 0;
