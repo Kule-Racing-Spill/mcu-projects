@@ -113,6 +113,7 @@ int main()
 		}
 		if (b & BUTTON3)
 		{
+			jump();
 		}
 
 #if !DEV
