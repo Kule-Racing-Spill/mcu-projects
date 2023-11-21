@@ -21,7 +21,7 @@ colors = [
 
 
 for i in range(10):
-    filename = f"speedometer"
+    filename = f"kolon"
 
     img = Image.open(f"{filename}.png").convert("RGB")
     pixels = img.load()
