@@ -384,6 +384,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 			if (is_coin(e))
 			{
 				e->disabled = 1;
+				coin_count++;
 			}
 			else if (is_bush(e))
 			{
