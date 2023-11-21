@@ -21,7 +21,7 @@ colors = [
 
 
 for i in range(10):
-    filename = f"kolon"
+    filename = f"rock"
 
     img = Image.open(f"{filename}.png").convert("RGB")
     pixels = img.load()

@@ -92,6 +92,11 @@ static bool is_bush(entity_t *e)
 	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
 }
 
+static bool is_rock(entity_t *e)
+{
+	return e->draw_info.sprite_id == 43;
+}
+
 int chunk_index(float x, float y)
 {
 	int offset = CHUNK_WIDTH * WORLD_WIDTH / 2;
@@ -470,8 +475,8 @@ extern inline void kart_step(vec2int input_vector, int frames)
 				if (is_coin(e))
 					e->draw_info.sprite_id = 16 + (coin_rotation >> 2);
 				int res = set_draw_info(e, camera_pos, origin, 10, 0);
-				//if (x != 0 && y != 0 && res != 0)
-				//	break;
+				if (x != 0 && y != 0 && res != 0)
+					break;
 			}
 		}
 	}
@@ -493,7 +498,7 @@ extern inline void kart_step(vec2int input_vector, int frames)
 					e->disabled = 1;
 					coin_count++;
 				}
-				else if (is_bush(e))
+				else if (is_bush(e) || is_rock(e))
 				{
 					player.moving.tangential_speed = 0;
 				}
@@ -521,6 +526,11 @@ void kart_init()
 			r = R * 0.96;
 			entities[i].draw_info.sprite_id = 16;
 		}
+		if (i % 33 == 0)
+		{
+			r = R * ((i % 66 == 0) ? 0.98 : 0.94);
+			entities[i].draw_info.sprite_id = 43;
+		}
 		entities[i].position.x = -R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
 	}
@@ -537,6 +547,11 @@ void kart_init()
 		{
 			r = R * 0.96;
 			entities[i].draw_info.sprite_id = 16;
+		}
+		if (i % 33 == 0)
+		{
+			r = R * ((i % 66 == 0) ? 0.98 : 0.94);
+			entities[i].draw_info.sprite_id = 43;
 		}
 		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
