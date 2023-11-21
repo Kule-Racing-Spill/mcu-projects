@@ -10,7 +10,8 @@
 #define LED_PORT gpioPortE
 #define LED0 2
 #define LED1 3
-#define PD5 5
+
+// #define PD5 5
 
 #if DEV
 #define FPGA_INPUT_PORT 2
@@ -58,11 +59,10 @@ void gpio_init(void)
 	NVIC_EnableIRQ(GPIO_ODD_IRQn);
 }
 
-
 int main()
 {
 #if !DEV
-	(void) SystemCoreClockSet(CLOCK_HFXO,1,1);
+	(void)SystemCoreClockSet(CLOCK_HFXO, 1, 1);
 #endif
 
 #if DEBUG
@@ -80,20 +80,21 @@ int main()
 	input_vector.x = 0;
 	input_vector.y = 0;
 	vec2int prev_input_vector = {
-			.x = 0,
-			.y = 0
-	};
+		.x = 0,
+		.y = 0};
 
 	int fpga_reset = 0;
 	int fpga_ready = 0;
+	// GPIO_PinOutClear(gpioPortE, 13);
 
 	while (1)
 	{
 #if !DEV
 		fpga_ready = !GPIO_PinInGet(FPGA_INPUT_PORT, FPGA_READY_PIN);
-		int pd5 = GPIO_PinOutGet(gpioPortD, PD5);
+		int pe13 = GPIO_PinOutGet(gpioPortE, 13);
 
-		if(fpga_reset && fpga_ready){
+		if (fpga_reset && fpga_ready)
+		{
 			spi_send_sprites();
 		}
 
@@ -110,10 +111,13 @@ int main()
 			printf("Button1 pressed!\n");
 #endif
 		}
-		if(b & BUTTON3){}
+		if (b & BUTTON3)
+		{
+		}
 
 #if !DEV
-		if(b & BUTTON4){
+		if (b & BUTTON4)
+		{
 			NVIC_SystemReset(); // Reset MCU on press
 		}
 
@@ -123,7 +127,9 @@ int main()
 #if DEBUG
 			printf("Button2 pressed!\n");
 #endif
-		}else{
+		}
+		else
+		{
 			GPIO_PinOutClear(gpioPortE, 13);
 		}
 #endif
@@ -134,7 +140,6 @@ int main()
 		if (USBH_DeviceConnected())
 		{
 			GetTrackballValues(&input_vector);
-
 		}
 		else
 		{
@@ -145,15 +150,22 @@ int main()
 #endif
 		/* KART */
 
-		if (frames) {
-			if(prev_input_vector.x == input_vector.x){
+		if (frames)
+		{
+			if (prev_input_vector.x == input_vector.x)
+			{
 				input_vector.x = 0;
-			}else{
+			}
+			else
+			{
 				prev_input_vector.x = input_vector.x;
 			}
-			if(prev_input_vector.y == input_vector.y){
+			if (prev_input_vector.y == input_vector.y)
+			{
 				input_vector.y = 0;
-			}else{
+			}
+			else
+			{
 				prev_input_vector.y = input_vector.y;
 			}
 			kart_step(input_vector, frames);
