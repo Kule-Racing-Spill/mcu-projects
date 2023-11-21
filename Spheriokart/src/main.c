@@ -14,6 +14,8 @@
 #define LED0 2
 #define LED1 3
 
+#define PD5 5
+
 #if DEV
 #define FPGA_INPUT_PORT 2
 #define FPGA_INPUT_PIN 4
