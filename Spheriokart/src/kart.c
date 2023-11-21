@@ -213,6 +213,7 @@ entity_t *entity_draw_order[NUM_ENTITIES];
 int visible_count = 0;
 int coin_rotation = 0;
 int coin_count = 0;
+int timer = 0;
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
@@ -254,15 +255,52 @@ sprite_draw_info overlay_speedometer = {
 };
 sprite_draw_info overlay_speed_digit0 = {
 	.sprite_id = 32,
-	.x = 52,
+	.x = 20 + 32,
 	.y = 428,
 	.scale = 32,
 };
 sprite_draw_info overlay_speed_digit1 = {
 	.sprite_id = 32,
-	.x = 80,
+	.x = 20 + 32 + 28,
 	.y = 428,
 	.scale = 32,
+};
+
+sprite_draw_info overlay_stopwatch = {
+	.sprite_id = 21,
+	.x = 550,
+	.y = 20,
+	.scale = 48,
+};
+sprite_draw_info overlay_timer_min_digit0 = {
+	.sprite_id = 32,
+	.x = 550 + 44,
+	.y = 20,
+	.scale = 48,
+};
+sprite_draw_info overlay_timer_min_digit1 = {
+	.sprite_id = 32,
+	.x = 550 + 44 + 40,
+	.y = 20,
+	.scale = 48,
+};
+sprite_draw_info overlay_timer_colon = {
+	.sprite_id = 42,
+	.x = 550 + 44 + 40 + 32,
+	.y = 20,
+	.scale = 48,
+};
+sprite_draw_info overlay_timer_sec_digit0 = {
+	.sprite_id = 32,
+	.x = 550 + 44 + 40 + 32 + 32,
+	.y = 20,
+	.scale = 48,
+};
+sprite_draw_info overlay_timer_sec_digit1 = {
+	.sprite_id = 32,
+	.x = 550 + 44 + 40 + 32 + 32 + 40,
+	.y = 20,
+	.scale = 48,
 };
 void draw_overlay()
 {
@@ -273,12 +311,24 @@ void draw_overlay()
 	spi_draw_sprite(overlay_coin_digit1);
 
 	int speed = abs(player.moving.tangential_speed / 5);
-
 	overlay_speed_digit0.sprite_id = 32 + speed / 10;
 	overlay_speed_digit1.sprite_id = 32 + speed % 10;
 	spi_draw_sprite(overlay_speedometer);
 	spi_draw_sprite(overlay_speed_digit0);
 	spi_draw_sprite(overlay_speed_digit1);
+
+	int seconds = timer / 30;
+	int minutes = seconds / 60;
+	overlay_timer_min_digit0.sprite_id = 32 + minutes / 10;
+	overlay_timer_min_digit1.sprite_id = 32 + minutes % 10;
+	overlay_timer_sec_digit0.sprite_id = 32 + (seconds % 60) / 10;
+	overlay_timer_sec_digit1.sprite_id = 32 + seconds % 10;
+	spi_draw_sprite(overlay_stopwatch);
+	spi_draw_sprite(overlay_timer_min_digit0);
+	spi_draw_sprite(overlay_timer_min_digit1);
+	spi_draw_sprite(overlay_timer_colon);
+	spi_draw_sprite(overlay_timer_sec_digit0);
+	spi_draw_sprite(overlay_timer_sec_digit1);
 }
 
 extern inline void kart_draw()
@@ -352,6 +402,7 @@ int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offs
 
 extern inline void kart_step(vec2int input_vector, int frames)
 {
+	timer++;
 	player_step(&player, input_vector, frames);
 
 	coin_rotation = (coin_rotation + 1) % 16;
