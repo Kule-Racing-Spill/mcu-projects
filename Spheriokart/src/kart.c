@@ -66,6 +66,8 @@ struct moving_entity_t
 	float direction;
 	float radial_speed;		// change in direction = x * some factor
 	float tangential_speed; // change in position along the current direction = y * some factor
+	float z;
+	float z_speed;
 } typedef moving_entity_t;
 
 #define CHUNK_WIDTH 1024
@@ -88,6 +90,11 @@ static bool is_coin(entity_t *e)
 static bool is_bush(entity_t *e)
 {
 	return e->draw_info.sprite_id >= 8 && e->draw_info.sprite_id < 16;
+}
+
+static bool is_rock(entity_t *e)
+{
+	return e->draw_info.sprite_id == 43;
 }
 
 int chunk_index(float x, float y)
@@ -122,6 +129,9 @@ int chunk_index(float x, float y)
 #define PLAYER_MAX_TANGENTIAL_SPEED 100
 #define PLAYER_RADIAL_DAMPING 0.94
 #define PLAYER_TANGENTIAL_DAMPING 0.96
+#define PLAYER_JUMP_UP 24
+#define PLAYER_JUMP_FORWARD 40
+#define PLAYER_GRAVITY 3
 
 struct player_t
 {
@@ -184,6 +194,15 @@ extern inline void player_step(player_t *player, vec2int input_vector, int frame
 	{
 		player->moving.entity->draw_info.sprite_id = 0;
 	}
+
+	player->moving.z += player->moving.z_speed;
+
+	if (player->moving.z > 0) {
+		player->moving.z_speed -= PLAYER_GRAVITY;
+	} else {
+		player->moving.z = 0;
+		player->moving.z_speed = 0;
+	}
 }
 
 // Canvas
@@ -200,9 +219,9 @@ void draw_rect(int x0, int y0, int x1, int y1, char *color)
 
 // Program
 
-#define NUM_ENTITIES 450
+#define NUM_ENTITIES 600
 #define CAMERA_PLAYER_DISTANCE 256
-#define CAMERA_RENDER_DISTANCE 4096
+#define CAMERA_RENDER_DISTANCE 8096
 
 canvas_t canvas = (canvas_t){
 	.size = {800, 480}};
@@ -214,6 +233,18 @@ int visible_count = 0;
 int coin_rotation = 0;
 int coin_count = 0;
 int timer = 0;
+
+void jump() {
+	if (player.moving.z == 0) {
+		player.moving.z_speed = PLAYER_JUMP_UP;
+		if (0 < player.moving.tangential_speed && player.moving.tangential_speed < PLAYER_JUMP_FORWARD) {
+			player.moving.tangential_speed = PLAYER_JUMP_FORWARD;
+		}
+		if (-PLAYER_JUMP_FORWARD < player.moving.tangential_speed && player.moving.tangential_speed < 0) {
+			player.moving.tangential_speed = -PLAYER_JUMP_FORWARD;
+		}
+	}
+}
 
 int compare_distance_to_camera(const void *pa, const void *pb)
 {
@@ -348,13 +379,14 @@ extern inline void kart_draw()
 	draw_overlay();
 }
 
-int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offset)
+int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offset, float z)
 {
 	entity->visible = 0;
 
 	float distance_to_camera = distance_between(camera_pos, entity->position);
 
 	entity->distance_to_camera = distance_to_camera;
+
 	if (distance_to_camera > CAMERA_RENDER_DISTANCE)
 	{
 		return 0;
@@ -377,13 +409,13 @@ int set_draw_info(entity_t *entity, vec2 camera_pos, vec2 origin, int scale_offs
 
 	vec2 offset = {
 		32 * fast_pow(distance_to_camera, 0.4) * sin(angle),
-		16 * fast_pow(distance_to_camera, 0.35) * sin(angle - PI_HALF)};
+		16 * fast_pow(distance_to_camera, 0.34) * sin(angle - PI_HALF)};
 
 	int x = origin.x + offset.x;
 	int y = origin.y + offset.y;
 
 	entity->draw_info.x = x;
-	entity->draw_info.y = y;
+	entity->draw_info.y = y - z;
 
 	if (x < 0 || canvas.size.x - 0 < x || y < 0 || canvas.size.y - 0 < y)
 	{
@@ -421,14 +453,14 @@ extern inline void kart_step(vec2int input_vector, int frames)
 
 	visible_count = 0;
 
-	set_draw_info(player.moving.entity, camera_pos, origin, -5);
+	set_draw_info(player.moving.entity, camera_pos, origin, -5, player.moving.z);
 
 	int player_chunk_index = chunk_index(player.moving.entity->position.x, player.moving.entity->position.y);
 
 	// Draw sprites
-	for (int x = -3; x <= 3; x++)
+	for (int x = -5; x <= 5; x++)
 	{
-		for (int y = -3; y <= 3; y++)
+		for (int y = -5; y <= 5; y++)
 		{
 			int ci = player_chunk_index + x + y * WORLD_WIDTH;
 			if (ci < 0 || WORLD_WIDTH * WORLD_WIDTH <= ci)
@@ -442,33 +474,36 @@ extern inline void kart_step(vec2int input_vector, int frames)
 					continue;
 				if (is_coin(e))
 					e->draw_info.sprite_id = 16 + (coin_rotation >> 2);
-				int res = set_draw_info(e, camera_pos, origin, 10);
+				int res = set_draw_info(e, camera_pos, origin, 10, 0);
 				if (x != 0 && y != 0 && res != 0)
 					break;
 			}
 		}
 	}
 
-	// Collissions
-	chunk_t *chunk = &chunks[player_chunk_index];
-	for (int i = 0; i < chunk->i; i++)
-	{
-		entity_t *e = chunk->entities[i];
-		if (e->disabled)
-			continue;
+	// Collisions
 
-		if (distance_between(e->position, player.moving.entity->position) < 96)
+	if (player.moving.z < 16) {
+		chunk_t *chunk = &chunks[player_chunk_index];
+		for (int i = 0; i < chunk->i; i++)
 		{
-			if (is_coin(e))
+			entity_t *e = chunk->entities[i];
+			if (e->disabled)
+				continue;
+
+			if (distance_between(e->position, player.moving.entity->position) < 96)
 			{
-				e->disabled = 1;
-				coin_count++;
+				if (is_coin(e))
+				{
+					e->disabled = 1;
+					coin_count++;
+				}
+				else if (is_bush(e) || is_rock(e))
+				{
+					player.moving.tangential_speed = 0;
+				}
+				break;
 			}
-			else if (is_bush(e))
-			{
-				player.moving.tangential_speed = 0;
-			}
-			break;
 		}
 	}
 }
@@ -491,6 +526,11 @@ void kart_init()
 			r = R * 0.96;
 			entities[i].draw_info.sprite_id = 16;
 		}
+		if (i % 33 == 0)
+		{
+			r = R * ((i % 66 == 0) ? 0.98 : 0.94);
+			entities[i].draw_info.sprite_id = 43;
+		}
 		entities[i].position.x = -R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);
 	}
@@ -507,6 +547,11 @@ void kart_init()
 		{
 			r = R * 0.96;
 			entities[i].draw_info.sprite_id = 16;
+		}
+		if (i % 33 == 0)
+		{
+			r = R * ((i % 66 == 0) ? 0.98 : 0.94);
+			entities[i].draw_info.sprite_id = 43;
 		}
 		entities[i].position.x = R + r * sin(2 * PI * i / NUM_ENTITIES_HALF);
 		entities[i].position.y = 0 + r * cos(2 * PI * i / NUM_ENTITIES_HALF);

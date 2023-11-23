@@ -1,3 +1,4 @@
+#if DEBUG
 #include "bsp_trace.h"
 
 #include <stdio.h>
@@ -77,3 +78,4 @@ void SWO_SetupForPrint(void) {
 	ITM->TER = 0x1;
 
 }
+#endif
